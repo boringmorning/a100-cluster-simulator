@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
     }
     jobFile = string("../workload/load") + jobID + string(".txt");
     outFile = string("report/load") + jobID + postfix;
+    // cout << jobFile << "\n";
 
     Logger logger(outFile);
     Cluster cluster(ngpu, &logger, algo);
