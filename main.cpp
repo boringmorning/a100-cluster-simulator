@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
             printf("wrong algo argument!\n");
             exit(1);
     }
-    jobFile = string("workload/load") + jobID + string(".txt");
+    jobFile = string("../workload/load") + jobID + string(".txt");
     outFile = string("report/load") + jobID + postfix;
 
     Logger logger(outFile);
