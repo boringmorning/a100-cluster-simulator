@@ -1,9 +1,0 @@
-total runtime: 4097
-avg JCT: 65
-avg queueing delay: 7
-partition cnt: 
-   1/7 slices: 312
-   2/7 slices: 291
-   3/7 slices: 298
-   4/7 slices: 308
-   7/7 slices: 291
