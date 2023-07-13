@@ -43,9 +43,19 @@ void A100::getResource(vector<int> &resource){
     }
 }
 
-void A100::getPartition(int size, vector<Partition> &part){
+void A100::getPartition(int size, int timer, vector<Partition> &part){
     int currentFT3 = 0, currentFT4 = 0, currentFT7 = 0;
+    int sum = 0;
     vector<int> currentFT2(3, 0);
+    for(int i=0; i<SLICE; i++){
+        if(!empty[i]){
+            currentFT7 = max(currentFT7, jobTable[i]->finishTime);
+            sum += jobTable[i]->finishTime;
+        }
+        else{
+            sum += timer;
+        }
+    }
     switch(size){
         case 1:
             for(int i=0; i<6; i++){
@@ -66,6 +76,8 @@ void A100::getPartition(int size, vector<Partition> &part){
                         p.FT = currentFT2[idx2];
                     else
                         p.FT = currentFT3;
+                    p.FT = currentFT7;
+                    p.FT = (sum - timer) / 6;
                     part.push_back(p);
                 }
             }
@@ -86,6 +98,8 @@ void A100::getPartition(int size, vector<Partition> &part){
                         p.FT = currentFT4;
                     else
                         p.FT = currentFT3;
+                    p.FT = currentFT7;
+                    p.FT = (sum - timer * 2) / 5;
                     part.push_back(p);
                 }
             }
@@ -98,6 +112,7 @@ void A100::getPartition(int size, vector<Partition> &part){
             if(empty[4] && empty[5] && empty[6]){
                 Partition p(this->id, 3, 4);
                 p.FT = currentFT7;
+                p.FT = (sum - timer * 3) / 4;
                 part.push_back(p);
             }
             break;
@@ -109,6 +124,7 @@ void A100::getPartition(int size, vector<Partition> &part){
             if(empty[0] && empty[1] && empty[2] && empty[3]){
                 Partition p(this->id, 4, 0);
                 p.FT = currentFT7;
+                p.FT = (sum - timer * 4) / 3;
                 part.push_back(p);
             }
             break;

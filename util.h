@@ -17,8 +17,6 @@ typedef int tt;  // timer data time
 using namespace std;
 
 enum{
-    NOPART,
-    STATICPART,
     MYALLOCATE,
     FINAL
 };

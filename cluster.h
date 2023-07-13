@@ -26,8 +26,6 @@ public:
     void updateStatus();
     void finishJob(Job *j);
     void schedule();
-    void noPart();
-    void staticPart();
     void myAlgo();
     void final();
     bool validScaleUp(int size);
