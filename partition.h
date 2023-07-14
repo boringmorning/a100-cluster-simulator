@@ -6,7 +6,7 @@
 class Partition
 {
 public:
-    int gid, size, idx, FT;
+    int gid, size, idx, FT, emptyCnt;;
     Partition(int gid, int size, int idx);
     Partition();
 };
@@ -15,6 +15,7 @@ struct comparePartition
 {
     bool operator()(const Partition &a, const Partition &b)
     {
+        
         return a.FT < b.FT;
     }
 };
