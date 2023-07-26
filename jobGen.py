@@ -19,8 +19,10 @@ for k in range(0, 5):
 
     for i in range(njob):
         sliceIdx = random.randint(0,4)
-        rt = random.randint(45, 85)
-        ratio = 0.0
+        # rt = random.randint(10, 200)
+        # ratio = 0.0
+        # seq = (int)(rt * ratio)
+        # para = rt - seq
         seq = random.randint(4,40)
         para = random.randint(8,80)
         runtime = []

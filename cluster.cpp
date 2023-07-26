@@ -173,6 +173,10 @@ vector<vector<Job*>> Cluster::myAllocate(){
             }
         }
     }
+    // for(int idx=PARTITION-1; idx>=0; idx--){
+    //     cout << plan[idx].size() << "\n";
+    // }
+    // cout << "\n";
     return plan;
 }
 
@@ -223,6 +227,37 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
     for(int idx=PARTITION-2; idx>=0; idx--){
         int size = indexToSize[idx];
         vector<Partition> part;
+        // try
+        // vector<bool> used(ngpu, false);
+        // while(part.size() < plan[idx].size()){
+        //     int gid = -1;
+        //     int minGap = 1e9;
+        //     for(int j=0; j<ngpu; j++){
+        //         if(!used[j] && gpus[j].hasPartition(size) && gpus[j].freeSliceCnt() < minGap){
+        //             minGap = gpus[j].freeSliceCnt();
+        //             gid = j;
+        //         }
+        //     }
+        //     used[gid] = true;
+        //     vector<Partition> tmp;
+        //     gpus[gid].getPartition(size, timer, tmp);
+        //     if(part.size() + tmp.size() > plan[idx].size()){
+        //         sort(tmp.begin(), tmp.end(), comparePartition());
+        //         int cnt = plan[idx].size() - part.size();
+        //         for(int j=tmp.size()-cnt; j < tmp.size(); j++){
+        //             part.push_back(tmp[j]);
+        //         }
+        //     }
+        //     else{
+        //         for(auto p: tmp){
+        //             part.push_back(p);
+        //         }
+        //     }
+        // }
+        // if(part.size() != plan[idx].size()){
+        //     cout << "zz\n";
+        // }
+
         for(int i=0; i<ngpu; i++){
             gpus[i].getPartition(size, timer, part);
         }
