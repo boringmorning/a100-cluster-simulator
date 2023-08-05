@@ -138,7 +138,6 @@ bool Cluster::validScaleUp(int newSize){
 
 vector<vector<Job*>> Cluster::myAllocate(){
     vector<vector<Job*>> plan(PARTITION);
-    priority_queue<JobMetrics, vector<JobMetrics>, compareMetrics> pq;
     for(int i=PARTITION-1; i>=0; i--){
         int size = indexToSize[i];
         while(resource[i] != 0 && !readyJobs[i].empty()){
@@ -227,37 +226,6 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
     for(int idx=PARTITION-2; idx>=0; idx--){
         int size = indexToSize[idx];
         vector<Partition> part;
-        // try
-        // vector<bool> used(ngpu, false);
-        // while(part.size() < plan[idx].size()){
-        //     int gid = -1;
-        //     int minGap = 1e9;
-        //     for(int j=0; j<ngpu; j++){
-        //         if(!used[j] && gpus[j].hasPartition(size) && gpus[j].freeSliceCnt() < minGap){
-        //             minGap = gpus[j].freeSliceCnt();
-        //             gid = j;
-        //         }
-        //     }
-        //     used[gid] = true;
-        //     vector<Partition> tmp;
-        //     gpus[gid].getPartition(size, timer, tmp);
-        //     if(part.size() + tmp.size() > plan[idx].size()){
-        //         sort(tmp.begin(), tmp.end(), comparePartition());
-        //         int cnt = plan[idx].size() - part.size();
-        //         for(int j=tmp.size()-cnt; j < tmp.size(); j++){
-        //             part.push_back(tmp[j]);
-        //         }
-        //     }
-        //     else{
-        //         for(auto p: tmp){
-        //             part.push_back(p);
-        //         }
-        //     }
-        // }
-        // if(part.size() != plan[idx].size()){
-        //     cout << "zz\n";
-        // }
-
         for(int i=0; i<ngpu; i++){
             gpus[i].getPartition(size, timer, part);
         }
@@ -268,34 +236,19 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
         stable_sort(part.begin(), part.end(), comparePartition());
         sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
         int n = part.size(), m = plan[idx].size();
-        vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
         if(n < m){
             printf("zz\n");
             exit(1);
         }
         for(int j=0; j<m; j++){
-            for(int i=j; i<n; i++){
-                int waste = max(plan[idx][j]->finishTime - part[i].FT, 0);
-                dp[j+1][i+1] = dp[j][i] + waste;
-                if(i > j)
-                    dp[j+1][i+1] = min(dp[j+1][i+1], dp[j+1][i]);
-            }
+            int pid = n-m+j;
+            vector<int> slices;
+            Job *job = plan[idx][j];
+            gpus[part[pid].gid].allocatePart(job, part[pid], slices);
+            job->run(part[pid].gid, slices, timer);
+            running_queue.push(job);
+            // cout << part[pid].FT[0] << "\n";
         }
-        // backtracking
-        int i = n-1, j = m-1;
-        while(j >= 0){
-            if(i == j || dp[j+1][i+1] != dp[j+1][i]){
-                vector<int> slices;
-                Job *job = plan[idx][j];
-                gpus[part[i].gid].allocatePart(job, part[i], slices);
-                job->run(part[i].gid, slices, timer);
-                running_queue.push(job);
-                i--;
-                j--;
-            }
-            else{
-                i--;
-            }
-        }
+        // cout << "\n";
     }
 }

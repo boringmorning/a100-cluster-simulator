@@ -11,7 +11,3 @@ Partition::Partition(int gid, int size, int idx){
     this->size = size;
     this->idx = idx;
 }
-
-bool comparePartition(Partition &a, Partition &b){
-    return a.FT < b.FT;
-}

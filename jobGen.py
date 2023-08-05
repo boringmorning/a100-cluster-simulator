@@ -8,7 +8,8 @@ batchSize = 1
 
 for k in range(0, 5):
     t = []
-    njob = 2000 + k * 300
+    # njob = 2000 + k * 300
+    njob = 4000 + k * 300
     fname = "workload/load" + str(k) + ".txt"
     f = open(fname, "w")
     for i in range(njob // batchSize + 1):
@@ -18,7 +19,7 @@ for k in range(0, 5):
     t.sort()
 
     for i in range(njob):
-        sliceIdx = random.randint(0,4)
+        sliceIdx = random.randint(0,1)
         # rt = random.randint(10, 200)
         # ratio = 0.0
         # seq = (int)(rt * ratio)

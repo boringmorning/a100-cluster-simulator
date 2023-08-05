@@ -44,84 +44,73 @@ void A100::getResource(vector<int> &resource){
 }
 
 void A100::getPartition(int size, int timer, vector<Partition> &part){
-    int currentFT3 = 0, currentFT4 = 0, currentFT7 = 0;
-    int sum = 0, cnt = 0;
+    int currentFT3 = timer, currentFT4 = timer, currentFT7 = timer;
     vector<int> currentFT2(3, 0);
     for(int i=0; i<SLICE; i++){
         if(!empty[i]){
             currentFT7 = max(currentFT7, jobTable[i]->finishTime);
-            sum += jobTable[i]->finishTime;
-            cnt++;
         }
-        else{
-            sum += timer;
+    }
+    for(int i=0; i<6; i++){
+        int idx2 = i / 2;
+        if(!empty[i]){
+            currentFT2[idx2] = max(currentFT2[idx2], jobTable[i]->finishTime);
         }
+    }
+    for(int i=4; i<SLICE; i++){
+        if(!empty[i])
+            currentFT3 = max(currentFT3, jobTable[i]->finishTime);
+    }
+    for(int i=0; i<4; i++){
+        if(!empty[i])
+            currentFT4 = max(currentFT4, jobTable[i]->finishTime);
     }
     switch(size){
         case 1:
-            for(int i=0; i<6; i++){
-                int idx2 = i / 2;
-                if(!empty[i]){
-                    currentFT2[idx2] = max(currentFT2[idx2], jobTable[i]->finishTime);
-                }
-            }
-            for(int i=4; i<SLICE; i++){
-                if(!empty[i])
-                    currentFT3 = max(currentFT3, jobTable[i]->finishTime);
-            }
             for(int i=0; i < SLICE; i++){
                 if(empty[i]){
                     Partition p(this->id, 1, i);
                     int idx2 = i / 2;
                     if(idx2 < 3)
-                        p.FT = currentFT2[idx2];
+                        p.FT.push_back(currentFT2[idx2]);
                     else
-                        p.FT = currentFT3;
-                    // p.FT = currentFT7;
+                        p.FT.push_back(currentFT3);
+                    
+                    if(i < 4){
+                        p.FT.push_back(currentFT4);
+                    }
+                    else{
+                        p.FT.push_back(currentFT3);
+                    }
+                    p.FT.push_back(currentFT7);
                     part.push_back(p);
                 }
             }
             break;
         case 2:
-            for(int i=4; i<SLICE; i++){
-                if(!empty[i])
-                    currentFT3 = max(currentFT3, jobTable[i]->finishTime);
-            }
-            for(int i=0; i<4; i++){
-                if(!empty[i])
-                    currentFT4 = max(currentFT4, jobTable[i]->finishTime);
-            }
             for(int i=0; i+1 < SLICE; i+=2){
                 if(empty[i] && empty[i+1]){
                     Partition p(this->id, 2, i);
                     if(i < 4)
-                        p.FT = currentFT4;
+                        p.FT.push_back(currentFT4);
                     else
-                        p.FT = currentFT3;
-                    // p.FT = currentFT7;
+                        p.FT.push_back(currentFT3);
+                    p.FT.push_back(currentFT7);
                     part.push_back(p);
                 }
             }
             break;
         case 3:
-            for(int i=0; i<SLICE; i++){
-                if(!empty[i])
-                    currentFT7 = max(currentFT7, jobTable[i]->finishTime);
-            }
             if(empty[4] && empty[5] && empty[6]){
                 Partition p(this->id, 3, 4);
-                p.FT = currentFT7;
+                p.FT.push_back(currentFT7);
                 part.push_back(p);
             }
             break;
         case 4:
-            for(int i=0; i<SLICE; i++){
-                if(!empty[i])
-                    currentFT7 = max(currentFT7, jobTable[i]->finishTime);
-            }
             if(empty[0] && empty[1] && empty[2] && empty[3]){
                 Partition p(this->id, 4, 0);
-                p.FT = currentFT7;
+                p.FT.push_back(currentFT7);
                 part.push_back(p);
             }
             break;

@@ -34,7 +34,8 @@ void Logger::end(tt timer){
     file << "size JCT: \n";
     for(int i=0; i<PARTITION; i++){
         int size = indexToSize[i];
-        sizeJCT[i] /= partitionCnt[i];
+        if(partitionCnt[i] != 0)
+            sizeJCT[i] /= partitionCnt[i];
         file << "   " << size << ": " << sizeJCT[i] << "\n";
     }
 
