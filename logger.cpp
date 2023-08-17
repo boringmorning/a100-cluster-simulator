@@ -39,5 +39,11 @@ void Logger::end(tt timer){
         file << "   " << size << ": " << sizeJCT[i] << "\n";
     }
 
+    for(auto &j: jobs){
+        file << "job" << j->id << ":\n";
+        file << "   size: " << j->slices.size() <<"\n";
+        file << "   FT: " << j->finishTime << "\n";
+    }
+
     file.close();
 }

@@ -112,18 +112,13 @@ bool Cluster::validScaleUp(int newSize){
             if(resource[0] >= 1 && resource[1] >= 1)
                 return true;
             break;
-        case 3: // 2->3
-            if(resource[0] >= 1 && resource[2] >= 1){
+        case 4:
+            if(resource[0] >= 2 && resource[1] >= 1 && resource[2] >= 1){
                 return true;
             }
             break;
-        case 4: // 2->4, tricky here
-            if(resource[0] >= 2 && resource[1] >= 1 && resource[3] >= 1){
-                return true;
-            }
-            break;
-        case 7:
-            if(resource[0] >= 3 && resource[1] >= 1 && resource[2] >= 1 && resource[4] >= 1){
+        case 8:
+            if(resource[0] >= 4 && resource[1] >= 2 && resource[2] >= 1 && resource[3] >= 1){
                 return true;
             }
             break;
@@ -151,30 +146,20 @@ vector<vector<Job*>> Cluster::myAllocate(){
                     resource[0]-=2;
                     resource[1]--;
                     break;
-                case 3:
-                    resource[0]-=3;
-                    resource[1]--;
-                    resource[2]--;
-                    break;
                 case 4:
                     resource[0]-=4;
                     resource[1]-=2;
-                    resource[3]--;
-                    break;
-                case 7:
-                    resource[0]-=7;
-                    resource[1]-=3;
                     resource[2]--;
+                    break;
+                case 8:
+                    resource[0]-=8;
+                    resource[1]-=4;
+                    resource[2]-=2;
                     resource[3]--;
-                    resource[4]--;
                     break;
             }
         }
     }
-    // for(int idx=PARTITION-1; idx>=0; idx--){
-    //     cout << plan[idx].size() << "\n";
-    // }
-    // cout << "\n";
     return plan;
 }
 
@@ -186,18 +171,18 @@ void Cluster::placement(vector<vector<Job*>> &plan){
             int gid = -1;
             int minGap = 1e9;
             for(int j=0; j<ngpu; j++){
-                if(gpus[j].hasPartition(size) && gpus[j].freeSliceCnt() - size < minGap){
-                    minGap = gpus[j].freeSliceCnt() - size;
+                if(gpus[j].hasPartition(size) && gpus[j].freeSliceCnt() < minGap){
+                    minGap = gpus[j].freeSliceCnt();
                     gid = j;
                 }
             }
             if(gid == -1){
-                cout<<"zz\n";
+                cout<<"zzz\n";
                 exit(1);
             }
             vector<int> slices;
             if(!gpus[gid].allocate(job, size, slices)){
-                cout<<"zz\n";
+                cout<<"zzzz\n";
                 exit(1);
             }
             job->run(gid, slices, timer);
@@ -220,34 +205,70 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
         }
         job->run(gid, slices, timer);
         running_queue.push(job);
+        gid++;
     }
     // allocate resource from large partition
     for(int idx=PARTITION-2; idx>=0; idx--){
         int size = indexToSize[idx];
-        vector<Partition> part, part2;
+        vector<Partition> part, part1, part2;
         for(int i=0; i<ngpu; i++){
-            gpus[i].getPartition(size, timer, part, part2);
+            gpus[i].getPartition(size, timer, part);
+        }
+        for(auto &p: part){
+            if(p.FT[0] == timer){
+                part1.push_back(p);
+            }
+            else{
+                part2.push_back(p);
+            }
         }
         // set finish time for sorting
         for(auto job: plan[idx]){
             job->finishTime = timer + job->rt[idx];
         }
-        stable_sort(part.begin(), part.end(), comparePartition());
+        stable_sort(part2.begin(), part2.end(), comparePartition());
         sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
-        int n = part.size(), m = plan[idx].size();
-        if(n < m){
-            printf("zz\n");
-            exit(1);
-        }
-        for(int j=0; j<m; j++){
-            int pid = n-m+j;
+        int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
+        while(i >= 0 && j>=0){
+            if(j>0 && k>0){
+                int gap = plan[idx][j]->finishTime - timer;
+                int gap2;
+                if(i == 0){
+                    gap2 = max(plan[idx][j]->finishTime - part2[i].FT[0], 0) + (plan[idx][j-1]->finishTime - timer);
+                }
+                else{
+                    gap2 = max(plan[idx][j]->finishTime - part2[i].FT[0], 0) + max(plan[idx][j-1]->finishTime - part2[i-1].FT[0], 0);
+                }
+                if(gap < gap2){
+                    for(int c=0; c<2; c++){
+                        if(k < 0){
+                            cout << "WTF\n";
+                        }
+                        // cout << "0.0\n";
+                        vector<int> slices;
+                        Job *job = plan[idx][j--];
+                        gpus[part1[k].gid].allocatePart(job, part1[k], slices);
+                        job->run(part1[k--].gid, slices, timer);
+                        running_queue.push(job);
+                    }
+                    continue;
+                }
+            }
             vector<int> slices;
-            Job *job = plan[idx][j];
-            gpus[part[pid].gid].allocatePart(job, part[pid], slices);
-            job->run(part[pid].gid, slices, timer);
+            Job *job = plan[idx][j--];
+            gpus[part2[i].gid].allocatePart(job, part2[i], slices);
+            job->run(part2[i--].gid, slices, timer);
             running_queue.push(job);
-            // cout << part[pid].FT[0] << "\n";
         }
-        // cout << "\n";
+        while(j>=0){
+            if(k<0){
+                cout << "WTFZ\n";
+            }
+            vector<int> slices;
+            Job *job = plan[idx][j--];
+            gpus[part1[k].gid].allocatePart(job, part1[k], slices);
+            job->run(part1[k--].gid, slices, timer);
+            running_queue.push(job);
+        }
     }
 }

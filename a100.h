@@ -15,7 +15,7 @@ public:
     A100(int id);
     void freePartition(vector<int> &slices);
     void getResource(vector<int> &resource);
-    void getPartition(int size, int timer, vector<Partition> &part, vector<Partition> &part2);
+    void getPartition(int size, int timer, vector<Partition> &part);
     bool allocate(Job *j, int size, vector<int> &slices);
     void allocatePart(Job *j, Partition &p, vector<int> &slices);
     bool hasPartition(int size);

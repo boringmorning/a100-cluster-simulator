@@ -7,7 +7,6 @@ Job::Job(int id, int arrivalTime){
 }
 
 void Job::run(int gid, vector<int> &slices, tt timer){
-    // int pid = sizeToPartition(slices.size());
     int pid = sizeToIndex[slices.size()];
     this->gpuID = gid;
     this->slices = slices;
@@ -33,11 +32,11 @@ void JobMetrics::updateMetrics(){
         case 1:
             newSize = 2;
             break;
-        case 2: // tricky part
+        case 2:
             newSize = 4;
             break;
         case 4:
-            newSize = 7;
+            newSize = 8;
             break;
         default:
             printf("wrong size for update metrics: %d\n", this->size);

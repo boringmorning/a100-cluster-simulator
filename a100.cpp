@@ -25,64 +25,44 @@ void A100::getResource(vector<int> &resource){
             resource[1]++;
         }
     }
-    if(empty[4] && empty[5] && empty[6]){
-        resource[2]++;
-    }
-    if(empty[0] && empty[1] && empty[2] && empty[3]){
-        resource[3]++;
+    for(int i=0; i+3<SLICE; i+=4){
+        if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
+            resource[2]++;
+        }
     }
     bool allFree = true;
-    for(int i=0; i<7; i++){
+    for(int i=0; i<SLICE; i++){
         if(!empty[i]){
             allFree = false;
             break;
         }
     }
     if(allFree){
-        resource[4]++;
+        resource[3]++;
     }
 }
 
-void A100::getPartition(int size, int timer, vector<Partition> &part, vector<Partition> &part2){
-    int currentFT3 = timer, currentFT4 = timer, currentFT7 = timer;
-    vector<int> currentFT2(3, 0);
+void A100::getPartition(int size, int timer, vector<Partition> &part){
+    int currentFT8 = timer;
+    vector<int> currentFT2(4, timer), currentFT4(2, timer);
     for(int i=0; i<SLICE; i++){
-        if(!empty[i]){
-            currentFT7 = max(currentFT7, jobTable[i]->finishTime);
-        }
-    }
-    for(int i=0; i<6; i++){
         int idx2 = i / 2;
+        int idx4 = i / 4;
         if(!empty[i]){
             currentFT2[idx2] = max(currentFT2[idx2], jobTable[i]->finishTime);
+            currentFT4[idx4] = max(currentFT4[idx4], jobTable[i]->finishTime);
+            currentFT8 = max(currentFT8, jobTable[i]->finishTime);
         }
-    }
-    for(int i=4; i<SLICE; i++){
-        if(!empty[i])
-            currentFT3 = max(currentFT3, jobTable[i]->finishTime);
-    }
-    for(int i=0; i<4; i++){
-        if(!empty[i])
-            currentFT4 = max(currentFT4, jobTable[i]->finishTime);
     }
     switch(size){
         case 1:
             for(int i=0; i < SLICE; i++){
                 if(empty[i]){
                     Partition p(this->id, 1, i);
-                    int idx2 = i / 2;
-                    if(idx2 < 3)
-                        p.FT.push_back(currentFT2[idx2]);
-                    else
-                        p.FT.push_back(currentFT3);
-                    
-                    if(i < 4){
-                        p.FT.push_back(currentFT4);
-                    }
-                    else{
-                        p.FT.push_back(currentFT3);
-                    }
-                    p.FT.push_back(currentFT7);
+                    int idx2 = i / 2, idx4 = i / 4;
+                    p.FT.push_back(currentFT2[idx2]);
+                    p.FT.push_back(currentFT4[idx4]);
+                    p.FT.push_back(currentFT8);
                     part.push_back(p);
                 }
             }
@@ -91,31 +71,25 @@ void A100::getPartition(int size, int timer, vector<Partition> &part, vector<Par
             for(int i=0; i+1 < SLICE; i+=2){
                 if(empty[i] && empty[i+1]){
                     Partition p(this->id, 2, i);
-                    if(i < 4)
-                        p.FT.push_back(currentFT4);
-                    else
-                        p.FT.push_back(currentFT3);
-                    p.FT.push_back(currentFT7);
+                    int idx = i / 4;
+                    p.FT.push_back(currentFT4[idx]);
+                    p.FT.push_back(currentFT8);
                     part.push_back(p);
                 }
             }
             break;
-        case 3:
-            if(empty[4] && empty[5] && empty[6]){
-                Partition p(this->id, 3, 4);
-                p.FT.push_back(currentFT7);
-                part.push_back(p);
-            }
-            break;
         case 4:
-            if(empty[0] && empty[1] && empty[2] && empty[3]){
-                Partition p(this->id, 4, 0);
-                p.FT.push_back(currentFT7);
-                part.push_back(p);
+            for(int i=0; i+3<SLICE; i+=4){
+                if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
+                    Partition p(this->id, 4, i);
+                    p.FT.push_back(currentFT8);
+                    part.push_back(p);
+                }
             }
             break;
         default:
             cout << "Wrong partition size!\n";
+            cout << size << "\n";
             break;
     }
 }
@@ -132,7 +106,7 @@ bool A100::allocate(Job *j, int size, vector<int> &slices){
             }
             break;
         case 2:
-            for(int i=4; i>=0; i-=2){
+            for(int i=6; i>=0; i-=2){
                 if(empty[i] && empty[i+1]){
                     slices.push_back(i);
                     slices.push_back(i+1);
@@ -140,30 +114,19 @@ bool A100::allocate(Job *j, int size, vector<int> &slices){
                 }
             }
             break;
-        case 3:
-            for(int i=4; i<7; i++){
-                if(empty[i]){
-                    slices.push_back(i);
-                }
-                else{
-                    slices.clear();
-                    break;
-                }
-            }
-            break;
         case 4:
-            for(int i=0; i<4; i++){
-                if(empty[i]){
+            for(int i=4; i>=0; i-=4){
+                if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
                     slices.push_back(i);
-                }
-                else{
-                    slices.clear();
+                    slices.push_back(i+1);
+                    slices.push_back(i+2);
+                    slices.push_back(i+3);
                     break;
                 }
             }
             break;
-        case 7:
-            for(int i=0; i<7; i++){
+        case 8:
+            for(int i=0; i<8; i++){
                 if(empty[i]){
                     slices.push_back(i);
                 }
@@ -175,6 +138,7 @@ bool A100::allocate(Job *j, int size, vector<int> &slices){
             break;
         default:
             cout << "Wrong partition size!\n";
+            cout << size << "\n";
             break;
     }
     if(slices.empty()){
@@ -209,22 +173,21 @@ bool A100::hasPartition(int size){
             }
             break;
         case 2:
-            for(int i=4; i>=0; i-=2){
+            for(int i=6; i>=0; i-=2){
                 if(empty[i] && empty[i+1]){
                     return true;
                 }
             }
             break;
-        case 3:
-            if(empty[4] && empty[5] && empty[6])
-                return true;
-            break;
         case 4:
-            if(empty[0] && empty[1] && empty[2] && empty[3])
-                return true;
+            for(int i=4; i>=0; i-=4){
+                if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
+                    return true;
+                }
+            }
             break;
-        case 7:
-            for(int i=0; i<7; i++){
+        case 8:
+            for(int i=0; i<8; i++){
                 if(!empty[i]){
                     return false;
                 }
@@ -233,6 +196,7 @@ bool A100::hasPartition(int size){
             break;
         default:
             cout << "Wrong partition size!\n";
+            cout << size << "\n";
             break;
     }
     return false;
