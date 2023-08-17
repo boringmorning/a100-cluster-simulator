@@ -2,8 +2,7 @@ import numpy as np
 import random
 
 T = 4000
-x = [1,2,3,4,5,6,7]
-slice = [1, 2, 3, 4, 7]
+slice = [1, 2, 4, 8]
 batchSize = 1
 
 for k in range(0, 5):

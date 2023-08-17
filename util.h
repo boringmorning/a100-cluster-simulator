@@ -11,8 +11,8 @@
 #include <string>
 #include <algorithm>
 #define SPLIT "---------------------\n"
-#define SLICE 7 // number of mig slices of an A100
-#define PARTITION 5 // number of mig partition type (1/7, 2/7, 3/7, 4/7, 7/7)
+#define SLICE 8 // number of mig slices of an A100
+#define PARTITION 4 // number of mig partition type (1/8, 2/8, 4/8, 8/8)
 typedef int tt;  // timer data time
 using namespace std;
 

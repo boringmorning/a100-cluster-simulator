@@ -1,12 +1,11 @@
 #include "cluster.h"
 
-const int indexToSize[] = {1,2,3,4,7};
+const int indexToSize[] = {1,2,4,8};
 unordered_map<int,int> sizeToIndex = {
     {1,0},
     {2,1},
-    {3,2},
-    {4,3},
-    {7,4}
+    {4,2},
+    {8,3}
 };
 
 Cluster::Cluster(){
@@ -208,8 +207,8 @@ void Cluster::placement(vector<vector<Job*>> &plan){
 }
 
 void Cluster::myPlacement(vector<vector<Job*>> &plan){
-    // 7/7 partition has no reconfiguration chance, no need to change
-    int gid = 0, size = 7;
+    // 8/8 partition has no reconfiguration chance, no need to change
+    int gid = 0, size = 8;
     for(auto job: plan[PARTITION-1]){
         vector<int> slices;
         while(!gpus[gid].allocate(job, size, slices)){
@@ -225,9 +224,9 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
     // allocate resource from large partition
     for(int idx=PARTITION-2; idx>=0; idx--){
         int size = indexToSize[idx];
-        vector<Partition> part;
+        vector<Partition> part, part2;
         for(int i=0; i<ngpu; i++){
-            gpus[i].getPartition(size, timer, part);
+            gpus[i].getPartition(size, timer, part, part2);
         }
         // set finish time for sorting
         for(auto job: plan[idx]){

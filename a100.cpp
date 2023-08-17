@@ -43,7 +43,7 @@ void A100::getResource(vector<int> &resource){
     }
 }
 
-void A100::getPartition(int size, int timer, vector<Partition> &part){
+void A100::getPartition(int size, int timer, vector<Partition> &part, vector<Partition> &part2){
     int currentFT3 = timer, currentFT4 = timer, currentFT7 = timer;
     vector<int> currentFT2(3, 0);
     for(int i=0; i<SLICE; i++){
