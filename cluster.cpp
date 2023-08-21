@@ -25,6 +25,32 @@ Cluster::Cluster(int ngpu, Logger *logger, int algo){
     for(int i=0; i<ngpu; i++){
         gpus.push_back(A100(i));
     }
+    this->pcnt = vector<int>(PARTITION);
+    vector<int> dist{10,25,45,20}, rt{66,38,29,18};
+    int total = 0, sliceCnt = ngpu * 8, tmp = 0;
+    for(int i=0; i<PARTITION; i++){
+        total += dist[i] * rt[i] * indexToSize[i];
+    }
+    for(int i=PARTITION-1; i>=1; i--){
+        int size = indexToSize[i];
+        double ratio = ((double)dist[i] * rt[i] * size) / total;
+        double num = sliceCnt * ratio / size;
+        if(num - floor(num) > 0.5){
+            pcnt[i] = (int)ceil(num);
+        }
+        else{
+            pcnt[i] = (int)floor(num);
+        }
+        tmp += pcnt[i] * size;
+    }
+    pcnt[0] = sliceCnt - tmp;
+    if(pcnt[0] <= 0){
+        cout << "ccccc\n";
+        exit(1);
+    }
+    // for(int i=0; i<PARTITION; i++){
+    //     cout << pcnt[i] << "\n";
+    // }
 }
 
 void Cluster::newJob(Job *j){
@@ -87,6 +113,9 @@ void Cluster::schedule(){
         case FINAL:
             final();    // my allocation + my placement
             break;
+        case BEST:
+            best();
+            break;
         default:
             printf("Wrong algo argument!\n");
             exit(1);
@@ -104,6 +133,55 @@ void Cluster:: myAlgo(){
 void Cluster::final(){
     vector<vector<Job*>> plan = myAllocate();
     myPlacement(plan);
+}
+
+void Cluster::best(){
+    int gid = 0, sidx = 0;
+    for(int i=PARTITION-1; i>=0; i--){
+        int size = indexToSize[i];
+        for(int j=0; j<pcnt[i]; j++){
+            if(!readyJobs[i].empty() && gpus[gid].empty[sidx]){
+                Job *job = readyJobs[i].top();
+                readyJobs[i].pop();
+                vector<int> slices;
+                if(!gpus[gid].allocate(job, size, slices)){
+                    cout<<"zzzz\n";
+                    exit(1);
+                }
+                job->run(gid, slices, timer);
+                running_queue.push(job);
+            }
+            sidx += size;
+            if(sidx == SLICE){
+                sidx = 0;
+                gid++;
+            }
+        }
+    }
+    // int gid = 0;
+    // for(int i=PARTITION-1; i>=0; i--){
+    //     int size = indexToSize[i];
+    //     int cnt = size;
+    //     for(int j=0; j<cnt; j++){
+    //         for(int k=0; k<SLICE; k+=size){
+    //             if(readyJobs[i].empty()){
+    //                 break;
+    //             }
+    //             if(gpus[gid].empty[k]){
+    //                 Job *job = readyJobs[i].top();
+    //                 readyJobs[i].pop();
+    //                 vector<int> slices;
+    //                 if(!gpus[gid].allocate(job, size, slices)){
+    //                     cout<<"zzzz\n";
+    //                     exit(1);
+    //                 }
+    //                 job->run(gid, slices, timer);
+    //                 running_queue.push(job);
+    //             }
+    //         }
+    //         gid++;
+    //     }
+    // }
 }
 
 bool Cluster::validScaleUp(int newSize){
@@ -228,6 +306,19 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
         }
         stable_sort(part2.begin(), part2.end(), comparePartition());
         sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
+        // cout<<"---\n";
+        // for(auto &p: part2){
+        //     cout << p.FT[0] << " ";
+        // }
+        // cout << "\n";
+        // for(auto &job: plan[idx]){
+        //     cout << job->finishTime << " ";
+        // }
+        // cout<<"\n";
+        // for(auto &job: plan[idx]){
+        //     cout << job->id << " ";
+        // }
+        // cout<<"\n";
         int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
         while(i >= 0 && j>=0){
             if(j>0 && k>0){

@@ -7,11 +7,10 @@
 
 class A100
 {
-private:
+public:
     int id;
     bool empty[SLICE];
     Job *jobTable[SLICE];
-public:
     A100(int id);
     void freePartition(vector<int> &slices);
     void getResource(vector<int> &resource);

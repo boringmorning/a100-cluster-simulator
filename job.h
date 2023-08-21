@@ -46,7 +46,7 @@ struct compareFinish2
 {
     bool operator()(const Job *a, const Job *b)
     {
-        return a->finishTime < b->finishTime;
+        return a->finishTime > b->finishTime;
     }
 };
 
@@ -55,6 +55,14 @@ struct compareSpeed
     bool operator()(const Job *a, const Job *b)
     {
         return a->speed > b->speed;
+    }
+};
+
+struct compareArrival
+{
+    bool operator()(const Job *a, const Job *b)
+    {
+        return a->arrivalTime > b->arrivalTime;
     }
 };
 
