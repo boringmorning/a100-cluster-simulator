@@ -26,11 +26,6 @@ void Logger::end(tt timer){
     file << "total runtime: " << timer << "\n";
     file << "avg JCT: " << avgJCT << "\n";
     file << "avg queueing delay: " << avgQD << "\n";
-    file << "partition cnt: " << "\n";
-    for(int i=0; i<PARTITION; i++){
-        int size = indexToSize[i];
-        file << "   " << size << "/7 slices: " << partitionCnt[i] << "\n";
-    }
     file << "size JCT: \n";
     for(int i=0; i<PARTITION; i++){
         int size = indexToSize[i];

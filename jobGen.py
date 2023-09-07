@@ -3,20 +3,19 @@ import random
 
 T = 4000
 slice = [1, 2, 4, 8]
-dist = [0.1, 0.35, 0.8, 1.0]
+dist = [0.25, 0.5, 0.75, 1.0]
+# dist = [0.5, 1.0, 1.0, 1.0]
 batchSize = 1
 
 for k in range(0, 5):
     t = []
-    # njob = 2000 + k * 300
-    njob = 5000 + k * 300
+    njob = 1000
     fname = "workload/load" + str(k) + ".txt"
     f = open(fname, "w")
-    for i in range(njob // batchSize + 1):
-        t.append(random.randint(0,T))
-        # t.append(0)
-
-    t.sort()
+    # t = np.random.poisson(7 - k / 2, njob)
+    t = np.random.poisson(10 - k / 2, njob)
+    for i in range(1, len(t)):
+        t[i] = t[i-1] + t[i]
 
     for i in range(njob):
         x = random.random()
@@ -28,8 +27,8 @@ for k in range(0, 5):
         elif x < dist[2]:
             sliceIdx = 2
         # sliceIdx = random.randint(0,3)
-        seq = random.randint(2,20)
-        para = random.randint(10,100)
+        seq = random.randint(20,200)
+        para = random.randint(100,1000)
         runtime = []
         for j in slice:
             # runtime.append((seq + para) // j)

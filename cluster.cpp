@@ -11,22 +11,25 @@ unordered_map<int,int> sizeToIndex = {
 Cluster::Cluster(){
     this->timer = 0;
     this->ngpu = 0;
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareSpeed>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
 }
 
 
 Cluster::Cluster(int ngpu, Logger *logger, int algo){
+    this->heavy = false;
+    this->epoch = 0;
     this->timer = 0;
     this->ngpu = ngpu;
     this->logger = logger;
     this->algo = algo;
     this->resource = vector<int>(PARTITION);
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareSpeed>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
     for(int i=0; i<ngpu; i++){
         gpus.push_back(A100(i));
     }
     this->pcnt = vector<int>(PARTITION);
-    vector<int> dist{10,25,45,20}, rt{66,38,29,18};
+    // vector<int> dist{10,25,45,20}, rt{66,38,29,18};
+    vector<int> dist{10,25,45,20}, rt{66,33,16,8};
     int total = 0, sliceCnt = ngpu * 8, tmp = 0;
     for(int i=0; i<PARTITION; i++){
         total += dist[i] * rt[i] * indexToSize[i];
@@ -136,52 +139,60 @@ void Cluster::final(){
 }
 
 void Cluster::best(){
+    int newEpoch = timer / 500;
     int gid = 0, sidx = 0;
-    for(int i=PARTITION-1; i>=0; i--){
-        int size = indexToSize[i];
-        for(int j=0; j<pcnt[i]; j++){
-            if(!readyJobs[i].empty() && gpus[gid].empty[sidx]){
-                Job *job = readyJobs[i].top();
-                readyJobs[i].pop();
-                vector<int> slices;
-                if(!gpus[gid].allocate(job, size, slices)){
-                    cout<<"zzzz\n";
-                    exit(1);
+    if(newEpoch > epoch){
+        // cout << heavy << "\n";
+        // check cluster load
+        int sliceCnt = 0, required = 0;
+        for(int i=0; i<ngpu; i++){
+            sliceCnt += gpus[i].freeSliceCnt();
+        }
+        for(int i=PARTITION-1; i>=0; i--){
+            int size = indexToSize[i];
+            required += readyJobs[i].size() * size;
+        }
+        if(required - sliceCnt > 0.5 * ngpu * 8){
+            heavy = true;
+        }
+        else{
+            heavy = false;
+        }
+        epoch = newEpoch;
+    }
+    if(!heavy){
+        myAlgo();
+    }
+    else{
+        for(int i=PARTITION-1; i>=0; i--){
+            int size = indexToSize[i];
+            for(int j=0; j<pcnt[i]; j++){
+                bool valid = true;
+                for(int k=0; k<size; k++){
+                    if(!gpus[gid].empty[sidx+k]){
+                        valid = false;
+                        break;
+                    }
                 }
-                job->run(gid, slices, timer);
-                running_queue.push(job);
-            }
-            sidx += size;
-            if(sidx == SLICE){
-                sidx = 0;
-                gid++;
+                if(!readyJobs[i].empty() && valid){
+                    Job *job = readyJobs[i].top();
+                    readyJobs[i].pop();
+                    vector<int> slices;
+                    if(!gpus[gid].allocate(job, size, slices)){
+                        cout<<"zzzz\n";
+                        exit(1);
+                    }
+                    job->run(gid, slices, timer);
+                    running_queue.push(job);
+                }
+                sidx += size;
+                if(sidx == SLICE){
+                    sidx = 0;
+                    gid++;
+                }
             }
         }
     }
-    // int gid = 0;
-    // for(int i=PARTITION-1; i>=0; i--){
-    //     int size = indexToSize[i];
-    //     int cnt = size;
-    //     for(int j=0; j<cnt; j++){
-    //         for(int k=0; k<SLICE; k+=size){
-    //             if(readyJobs[i].empty()){
-    //                 break;
-    //             }
-    //             if(gpus[gid].empty[k]){
-    //                 Job *job = readyJobs[i].top();
-    //                 readyJobs[i].pop();
-    //                 vector<int> slices;
-    //                 if(!gpus[gid].allocate(job, size, slices)){
-    //                     cout<<"zzzz\n";
-    //                     exit(1);
-    //                 }
-    //                 job->run(gid, slices, timer);
-    //                 running_queue.push(job);
-    //             }
-    //         }
-    //         gid++;
-    //     }
-    // }
 }
 
 bool Cluster::validScaleUp(int newSize){
