@@ -10,6 +10,7 @@ unordered_map<int,int> sizeToIndex = {
 
 Cluster::Cluster(){
     this->timer = 0;
+    this->util = 0.0;
     this->ngpu = 0;
     this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
 }
@@ -19,6 +20,7 @@ Cluster::Cluster(int ngpu, Logger *logger, int algo){
     this->heavy = false;
     this->epoch = 0;
     this->timer = 0;
+    this->util = 0.0;
     this->ngpu = ngpu;
     this->logger = logger;
     this->algo = algo;
@@ -76,7 +78,17 @@ void Cluster::run(){
         readyCnt = 0;
         for(int i=0; i<PARTITION; i++){
             readyCnt += readyJobs[i].size();
-        } 
+        }
+        double inUse = 0.0;
+        for(int i=0; i<ngpu; i++){
+            for(int j=0; j<SLICE; j++){
+                if(!gpus[i].empty[j]){
+                    inUse++;
+                }
+            }
+        }
+        double util = inUse / (ngpu * SLICE);
+        logger->logUtil(timer, util);
     }
     logger->end(timer);
 }
@@ -317,19 +329,6 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
         }
         stable_sort(part2.begin(), part2.end(), comparePartition());
         sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
-        // cout<<"---\n";
-        // for(auto &p: part2){
-        //     cout << p.FT[0] << " ";
-        // }
-        // cout << "\n";
-        // for(auto &job: plan[idx]){
-        //     cout << job->finishTime << " ";
-        // }
-        // cout<<"\n";
-        // for(auto &job: plan[idx]){
-        //     cout << job->id << " ";
-        // }
-        // cout<<"\n";
         int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
         while(i >= 0 && j>=0){
             if(j>0 && k>0){
@@ -343,10 +342,6 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
                 }
                 if(gap < gap2){
                     for(int c=0; c<2; c++){
-                        if(k < 0){
-                            cout << "WTF\n";
-                        }
-                        // cout << "0.0\n";
                         vector<int> slices;
                         Job *job = plan[idx][j--];
                         gpus[part1[k].gid].allocatePart(job, part1[k], slices);

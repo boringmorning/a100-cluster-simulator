@@ -26,7 +26,6 @@ for k in range(0, 5):
             sliceIdx = 1
         elif x < dist[2]:
             sliceIdx = 2
-        # sliceIdx = random.randint(0,3)
         seq = random.randint(20,200)
         para = random.randint(100,1000)
         runtime = []

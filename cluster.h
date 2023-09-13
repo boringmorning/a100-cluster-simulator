@@ -10,6 +10,7 @@ class Cluster
 {
 private:
     int ngpu, algo, epoch;
+    double util;
     bool heavy;
     tt timer;
     Logger *logger;

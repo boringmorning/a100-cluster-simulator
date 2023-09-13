@@ -11,11 +11,12 @@ class Logger
 {
 private:
     string fileName;
-    fstream file;
+    fstream file, util;
     vector<Job*> jobs;
 public:
     Logger(string fileName);
     void finishJob(Job *j);
+    void logUtil(tt timer, double u);
     void end(tt timer);
 };
 

@@ -3,10 +3,15 @@
 Logger::Logger(string fileName){
     this->fileName = fileName;
     file.open(fileName, ios::out | ios::trunc);
+    util.open(string("util/") + fileName.substr(7), ios::out | ios::trunc);
 }
 
 void Logger::finishJob(Job *j){
     this->jobs.push_back(j);
+}
+
+void Logger::logUtil(tt timer, double u){
+    util << timer << ": " << u << "\n"; 
 }
 
 void Logger::end(tt timer){
@@ -39,6 +44,6 @@ void Logger::end(tt timer){
     //     file << "   size: " << j->slices.size() <<"\n";
     //     file << "   FT: " << j->finishTime << "\n";
     // }
-
+    util.close();
     file.close();
 }
