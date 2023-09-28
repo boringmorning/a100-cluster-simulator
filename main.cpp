@@ -48,9 +48,6 @@ int main(int argc, char *argv[]) {
         case FINAL:
             postfix = string("_final.txt");
             break;
-        case BEST:
-            postfix = string("_best.txt");
-            break;
         default:
             printf("wrong algo argument!\n");
             exit(1);

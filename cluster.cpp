@@ -12,7 +12,7 @@ Cluster::Cluster(){
     this->timer = 0;
     this->util = 0.0;
     this->ngpu = 0;
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareFinish>>(PARTITION);
 }
 
 
@@ -25,37 +25,10 @@ Cluster::Cluster(int ngpu, Logger *logger, int algo){
     this->logger = logger;
     this->algo = algo;
     this->resource = vector<int>(PARTITION);
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareFinish>>(PARTITION);
     for(int i=0; i<ngpu; i++){
         gpus.push_back(A100(i));
     }
-    this->pcnt = vector<int>(PARTITION);
-    // vector<int> dist{10,25,45,20}, rt{66,38,29,18};
-    vector<int> dist{10,25,45,20}, rt{66,33,16,8};
-    int total = 0, sliceCnt = ngpu * 8, tmp = 0;
-    for(int i=0; i<PARTITION; i++){
-        total += dist[i] * rt[i] * indexToSize[i];
-    }
-    for(int i=PARTITION-1; i>=1; i--){
-        int size = indexToSize[i];
-        double ratio = ((double)dist[i] * rt[i] * size) / total;
-        double num = sliceCnt * ratio / size;
-        if(num - floor(num) > 0.5){
-            pcnt[i] = (int)ceil(num);
-        }
-        else{
-            pcnt[i] = (int)floor(num);
-        }
-        tmp += pcnt[i] * size;
-    }
-    pcnt[0] = sliceCnt - tmp;
-    if(pcnt[0] <= 0){
-        cout << "ccccc\n";
-        exit(1);
-    }
-    // for(int i=0; i<PARTITION; i++){
-    //     cout << pcnt[i] << "\n";
-    // }
 }
 
 void Cluster::newJob(Job *j){
@@ -128,9 +101,6 @@ void Cluster::schedule(){
         case FINAL:
             final();    // my allocation + my placement
             break;
-        case BEST:
-            best();
-            break;
         default:
             printf("Wrong algo argument!\n");
             exit(1);
@@ -148,63 +118,6 @@ void Cluster:: myAlgo(){
 void Cluster::final(){
     vector<vector<Job*>> plan = myAllocate();
     myPlacement(plan);
-}
-
-void Cluster::best(){
-    int newEpoch = timer / 500;
-    int gid = 0, sidx = 0;
-    if(newEpoch > epoch){
-        // cout << heavy << "\n";
-        // check cluster load
-        int sliceCnt = 0, required = 0;
-        for(int i=0; i<ngpu; i++){
-            sliceCnt += gpus[i].freeSliceCnt();
-        }
-        for(int i=PARTITION-1; i>=0; i--){
-            int size = indexToSize[i];
-            required += readyJobs[i].size() * size;
-        }
-        if(required - sliceCnt > 0.5 * ngpu * 8){
-            heavy = true;
-        }
-        else{
-            heavy = false;
-        }
-        epoch = newEpoch;
-    }
-    if(!heavy){
-        myAlgo();
-    }
-    else{
-        for(int i=PARTITION-1; i>=0; i--){
-            int size = indexToSize[i];
-            for(int j=0; j<pcnt[i]; j++){
-                bool valid = true;
-                for(int k=0; k<size; k++){
-                    if(!gpus[gid].empty[sidx+k]){
-                        valid = false;
-                        break;
-                    }
-                }
-                if(!readyJobs[i].empty() && valid){
-                    Job *job = readyJobs[i].top();
-                    readyJobs[i].pop();
-                    vector<int> slices;
-                    if(!gpus[gid].allocate(job, size, slices)){
-                        cout<<"zzzz\n";
-                        exit(1);
-                    }
-                    job->run(gid, slices, timer);
-                    running_queue.push(job);
-                }
-                sidx += size;
-                if(sidx == SLICE){
-                    sidx = 0;
-                    gid++;
-                }
-            }
-        }
-    }
 }
 
 bool Cluster::validScaleUp(int newSize){
@@ -277,6 +190,12 @@ void Cluster::placement(vector<vector<Job*>> &plan){
                     gid = j;
                 }
             }
+            // for(int j=0; j<ngpu; j++){
+            //     if(gpus[j].hasPartition(size)){
+            //         gid = j;
+            //         break;
+            //     }
+            // }
             if(gid == -1){
                 cout<<"zzz\n";
                 exit(1);
@@ -328,6 +247,10 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
             job->finishTime = timer + job->rt[idx];
         }
         stable_sort(part2.begin(), part2.end(), comparePartition());
+        stable_sort(part1.begin(), part1.end(), comparePartition());
+        // for(auto &p: part1){
+        //     cout << p.gid << "\n";
+        // }
         sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
         int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
         while(i >= 0 && j>=0){

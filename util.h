@@ -19,8 +19,7 @@ using namespace std;
 
 enum{
     MYALLOCATE,
-    FINAL,
-    BEST
+    FINAL
 };
 
 

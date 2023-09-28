@@ -18,7 +18,7 @@ for k in range(0, 5):
                 util.append(last_util)
             last_time = t
             last_util = float(x[1])
-        util = util[2000:7000]
+        util = util[10000:15000]
         print("\t", sum(util) / len(util))
 
         f.close()
