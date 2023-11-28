@@ -13,9 +13,12 @@ for k in range(0, 5):
     # for i in range(njob // 50):
     #     lam = 8 - k / 2 + (random.random() - 0.5) * 4
         # t = np.concatenate((t, np.random.poisson(lam, 100)))
-    t = np.random.poisson(50 - k / 2, njob)
+    t = np.random.poisson(8 - k / 2, njob)
     for i in range(1, len(t)):
         t[i] = t[i-1] + t[i]
+    for i in range(0, len(t)):
+        # print(i - i % batchSize)
+        t[i] = t[i - i % batchSize]
 
     cnt = 0
     for i in range(njob):
@@ -35,11 +38,11 @@ for k in range(0, 5):
         elif x < dist[2]:
             sliceIdx = 2
         seq = random.randint(2,200)
-        para = random.randint(10,1000)
+        # para = random.randint(10,1000)
+        para = random.randint(10,200)
         runtime = []
         for j in slice:
-            # runtime.append((seq + para) // j)
-            runtime.append(seq + para // j)
-        f.write(str(int(t[i // batchSize])) + " " + ' '.join(str(rt) for rt in runtime) + " " + str(slice[sliceIdx]) + "\n")
+            runtime.append(seq + para)
+        f.write(str(int(t[i])) + " " + ' '.join(str(rt) for rt in runtime) + " " + str(slice[sliceIdx]) + "\n")
 
     f.close()

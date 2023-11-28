@@ -61,7 +61,7 @@ void Cluster::run(){
             }
         }
         double util = inUse / (ngpu * SLICE);
-        logger->logUtil(timer, util);
+        logger->logUtil(timer, util, readyCnt);
     }
     logger->end(timer);
 }

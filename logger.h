@@ -16,7 +16,7 @@ private:
 public:
     Logger(string fileName);
     void finishJob(Job *j);
-    void logUtil(tt timer, double u);
+    void logUtil(tt timer, double u, int readyCnt);
     void end(tt timer);
 };
 

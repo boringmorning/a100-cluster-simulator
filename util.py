@@ -12,13 +12,19 @@ for k in range(0, 5):
         util = []
         for x in f:
             x = x[0:len(x)-1]
-            x = x.split(': ')
+            x = x.split()
             t = int(x[0]) 
             for i in range(last_time, t):
                 util.append(last_util)
             last_time = t
             last_util = float(x[1])
-        util = util[10000:15000]
-        print("\t", sum(util) / len(util))
+        prefix = []
+        ps = 0
+        w = 0
+        for u in util:
+            w += 1
+            ps += u
+            prefix.append(ps / w)
+        print("\t", sum(prefix) / len(prefix))
 
         f.close()

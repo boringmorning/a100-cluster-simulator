@@ -10,14 +10,15 @@ void Logger::finishJob(Job *j){
     this->jobs.push_back(j);
 }
 
-void Logger::logUtil(tt timer, double u){
-    util << timer << ": " << u << "\n"; 
+void Logger::logUtil(tt timer, double u, int readyCnt){
+    util << timer << " " << u << " " << readyCnt  << "\n"; 
 }
 
 void Logger::end(tt timer){
     int avgJCT = 0, avgQD = 0, cnt = 0;
     vector<int> sizeJCT(PARTITION, 0);
     vector<int> partitionCnt(PARTITION, 0);
+    // cout << jobs.size() << "\n";
     for(auto &j: jobs){
         int idx = sizeToIndex[j->slices.size()];
         sizeJCT[idx] += j->finishTime - j->arrivalTime;
