@@ -12,20 +12,19 @@ Cluster::Cluster(){
     this->timer = 0;
     this->util = 0.0;
     this->ngpu = 0;
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareFinish>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareSpeed>>(PARTITION);
 }
 
 
 Cluster::Cluster(int ngpu, Logger *logger, int algo){
     this->heavy = false;
-    this->epoch = 0;
     this->timer = 0;
     this->util = 0.0;
     this->ngpu = ngpu;
     this->logger = logger;
     this->algo = algo;
     this->resource = vector<int>(PARTITION);
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareFinish>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareSpeed>>(PARTITION);
     for(int i=0; i<ngpu; i++){
         gpus.push_back(A100(i));
     }
@@ -190,12 +189,6 @@ void Cluster::placement(vector<vector<Job*>> &plan){
                     gid = j;
                 }
             }
-            // for(int j=0; j<ngpu; j++){
-            //     if(gpus[j].hasPartition(size)){
-            //         gid = j;
-            //         break;
-            //     }
-            // }
             if(gid == -1){
                 cout<<"zzz\n";
                 exit(1);
@@ -267,7 +260,7 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
                     for(int c=0; c<2; c++){
                         vector<int> slices;
                         Job *job = plan[idx][j--];
-                        gpus[part1[k].gid].allocatePart(job, part1[k], slices);
+                        gpus[part1[k].gid].allocatePart(job, part1[k], slices, timer);
                         job->run(part1[k--].gid, slices, timer);
                         running_queue.push(job);
                     }
@@ -276,7 +269,7 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
             }
             vector<int> slices;
             Job *job = plan[idx][j--];
-            gpus[part2[i].gid].allocatePart(job, part2[i], slices);
+            gpus[part2[i].gid].allocatePart(job, part2[i], slices, timer);
             job->run(part2[i--].gid, slices, timer);
             running_queue.push(job);
         }
@@ -286,7 +279,7 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
             }
             vector<int> slices;
             Job *job = plan[idx][j--];
-            gpus[part1[k].gid].allocatePart(job, part1[k], slices);
+            gpus[part1[k].gid].allocatePart(job, part1[k], slices, timer);
             job->run(part1[k--].gid, slices, timer);
             running_queue.push(job);
         }

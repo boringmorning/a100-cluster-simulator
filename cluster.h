@@ -9,7 +9,7 @@
 class Cluster
 {
 private:
-    int ngpu, algo, epoch;
+    int ngpu, algo;
     double util;
     bool heavy;
     tt timer;
@@ -19,7 +19,7 @@ private:
     vector<int> resource;
     queue<Job*> job_queue;
     priority_queue<Job*, vector<Job*>, compareFinish> running_queue;
-    vector<priority_queue<Job*, vector<Job*>, compareFinish>> readyJobs;
+    vector<priority_queue<Job*, vector<Job*>, compareSpeed>> readyJobs;
 public:
     Cluster();
     Cluster(int ngpu, Logger *logger, int algo);

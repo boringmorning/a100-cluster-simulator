@@ -5,6 +5,7 @@ A100::A100(int id){
     this->id = id;
     for(int i=0; i<SLICE; i++){
         empty[i] = true;
+        finishTime[i] = 0;
     }
 }
 
@@ -151,12 +152,17 @@ bool A100::allocate(Job *j, int size, vector<int> &slices){
     return true;
 }
 
-void A100::allocatePart(Job *j, Partition &p, vector<int> &slices){
+void A100::allocatePart(Job *j, Partition &p, vector<int> &slices, tt timer){
     for(int s=p.idx; s<p.idx + p.size; s++){
         if(!empty[s]){
             printf("zzz\n");
             exit(1);
         }
+        if(timer < finishTime[s]){
+            printf("XDD\n");
+            exit(1);
+        }
+        finishTime[s] = j->finishTime;
         slices.push_back(s);
         jobTable[s] = j;
         empty[s] = false;
