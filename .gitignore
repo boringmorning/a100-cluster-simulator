@@ -1,4 +1,5 @@
 report/
+backup/
 workload/
 util/
 run.sh
