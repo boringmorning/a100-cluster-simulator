@@ -42,7 +42,7 @@ for k in range(0, 5):
         para = random.randint(10,200)
         runtime = []
         for j in slice:
-            runtime.append(seq + para)
+            runtime.append(seq + para // j)
         f.write(str(int(t[i])) + " " + ' '.join(str(rt) for rt in runtime) + " " + str(slice[sliceIdx]) + "\n")
 
     f.close()
