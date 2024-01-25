@@ -64,28 +64,63 @@ void A100::getPartition(int size, int timer, vector<Partition> &part){
                     p.FT.push_back(currentFT2[idx2]);
                     p.FT.push_back(currentFT4[idx4]);
                     p.FT.push_back(currentFT8);
+                    if(currentFT8 == timer){
+                        p.seg = 8;
+                    }
+                    else if(currentFT4[idx4] == timer){
+                        p.seg = 4;
+                    }
+                    else if(currentFT2[idx2] == timer){
+                        p.seg = 2;
+                    }
+                    else{
+                        p.seg = 1;
+                    }
                     part.push_back(p);
                 }
             }
             break;
         case 2:
-            for(int i=0; i+1 < SLICE; i+=2){
-                if(empty[i] && empty[i+1]){
-                    Partition p(this->id, 2, i);
-                    int idx = i / 4;
-                    p.FT.push_back(currentFT4[idx]);
+            for(int i=0; i<4; i++){
+                if(currentFT2[i] == timer){
+                    Partition p(this->id, 2, i*2);
+                    int idx4 = i * 2 / 4;
+                    p.FT.push_back(currentFT4[idx4]);
                     p.FT.push_back(currentFT8);
+                    if(currentFT8 == timer){
+                        p.seg = 8;
+                    }
+                    else if(currentFT4[idx4] == timer){
+                        p.seg = 4;
+                    }
+                    else{
+                        p.seg = 2;
+                    }
                     part.push_back(p);
                 }
             }
             break;
         case 4:
-            for(int i=0; i+3<SLICE; i+=4){
-                if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
-                    Partition p(this->id, 4, i);
+            for(int i=0; i<2; i++){
+                if(currentFT4[i] == timer){
+                    Partition p(this->id, 4, i*4);
                     p.FT.push_back(currentFT8);
+                    if(currentFT8 == timer){
+                        p.seg = 8;
+                    }
+                    else{
+                        p.seg = 4;
+                    }
                     part.push_back(p);
                 }
+            }
+            break;
+        case 8:
+            if(currentFT8 == timer){
+                Partition p(this->id, 8, 0);
+                p.FT.push_back(timer);
+                p.seg = 8;
+                part.push_back(p);
             }
             break;
         default:
@@ -155,7 +190,7 @@ bool A100::allocate(Job *j, int size, vector<int> &slices){
 void A100::allocatePart(Job *j, Partition &p, vector<int> &slices, tt timer){
     for(int s=p.idx; s<p.idx + p.size; s++){
         if(!empty[s]){
-            printf("zzz\n");
+            printf("0....0\n");
             exit(1);
         }
         if(timer < finishTime[s]){

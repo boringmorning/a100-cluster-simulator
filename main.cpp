@@ -42,11 +42,14 @@ int main(int argc, char *argv[]) {
     algo = stoi(argv[3]);
 
     switch(algo){
-        case MYALLOCATE:
+        case MYALGO:
             postfix = string("_my.txt");
             break;
-        case FINAL:
-            postfix = string("_final.txt");
+        case BESTFIT:
+            postfix = string("_bf.txt");
+            break;
+        case WORSTFIT:
+            postfix = string("_wf.txt");
             break;
         default:
             printf("wrong algo argument!\n");

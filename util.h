@@ -18,8 +18,9 @@ typedef int tt;  // timer data time
 using namespace std;
 
 enum{
-    MYALLOCATE,
-    FINAL
+    MYALGO,
+    BESTFIT,
+    WORSTFIT
 };
 
 

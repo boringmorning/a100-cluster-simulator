@@ -4,6 +4,8 @@
         "unordered_map": "cpp",
         "*.tcc": "cpp",
         "utility": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "xutility": "cpp",
+        "vector": "cpp"
     }
 }

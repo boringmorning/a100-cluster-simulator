@@ -1,6 +1,6 @@
 import numpy as np
 
-ALGO = ["_final", "_my"]
+ALGO = ["_bf", "_my", "_wf"]
 
 for k in range(0, 5):
     print("load" + str(k) + ":")
@@ -18,13 +18,7 @@ for k in range(0, 5):
                 util.append(last_util)
             last_time = t
             last_util = float(x[1])
-        prefix = []
-        ps = 0
-        w = 0
-        for u in util:
-            w += 1
-            ps += u
-            prefix.append(ps / w)
-        print("\t", sum(prefix) / len(prefix))
+        util = util[:1600]
+        print("\t", sum(util) / len(util))
 
         f.close()

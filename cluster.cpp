@@ -12,7 +12,7 @@ Cluster::Cluster(){
     this->timer = 0;
     this->util = 0.0;
     this->ngpu = 0;
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareSpeed>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
 }
 
 
@@ -24,7 +24,7 @@ Cluster::Cluster(int ngpu, Logger *logger, int algo){
     this->logger = logger;
     this->algo = algo;
     this->resource = vector<int>(PARTITION);
-    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareSpeed>>(PARTITION);
+    this->readyJobs = vector<priority_queue<Job*, vector<Job*>, compareArrival>>(PARTITION);
     for(int i=0; i<ngpu; i++){
         gpus.push_back(A100(i));
     }
@@ -94,11 +94,14 @@ void Cluster::finishJob(Job *j){
 
 void Cluster::schedule(){
     switch(algo){
-        case MYALLOCATE:
-            myAlgo();   // my allocation + normal placement
+        case MYALGO:
+            myAlgo();
             break;
-        case FINAL:
-            final();    // my allocation + my placement
+        case BESTFIT:
+            bestfit();
+            break;
+        case WORSTFIT:
+            worstfit();
             break;
         default:
             printf("Wrong algo argument!\n");
@@ -107,16 +110,19 @@ void Cluster::schedule(){
     }
 }
 
-// my allocation + normal placement
 void Cluster:: myAlgo(){
     vector<vector<Job*>> plan = myAllocate();
-    placement(plan);
+    myPlacement(plan);
 }
 
-// my allocation + my placement
-void Cluster::final(){
+void Cluster::bestfit(){
     vector<vector<Job*>> plan = myAllocate();
-    myPlacement(plan);
+    bestfitPlacement(plan);
+}
+
+void Cluster::worstfit(){
+    vector<vector<Job*>> plan = myAllocate();
+    worstfitPlacement(plan);
 }
 
 bool Cluster::validScaleUp(int newSize){
@@ -176,52 +182,9 @@ vector<vector<Job*>> Cluster::myAllocate(){
     return plan;
 }
 
-void Cluster::placement(vector<vector<Job*>> &plan){
-    // allocate resource from large partition
-    for(int i=PARTITION-1; i>=0; i--){
-        int size = indexToSize[i];
-        for(auto job: plan[i]){
-            int gid = -1;
-            int minGap = 1e9;
-            for(int j=0; j<ngpu; j++){
-                if(gpus[j].hasPartition(size) && gpus[j].freeSliceCnt() < minGap){
-                    minGap = gpus[j].freeSliceCnt();
-                    gid = j;
-                }
-            }
-            if(gid == -1){
-                cout<<"zzz\n";
-                exit(1);
-            }
-            vector<int> slices;
-            if(!gpus[gid].allocate(job, size, slices)){
-                cout<<"zzzz\n";
-                exit(1);
-            }
-            job->run(gid, slices, timer);
-            running_queue.push(job);
-        }
-    }
-}
-
 void Cluster::myPlacement(vector<vector<Job*>> &plan){
-    // 8/8 partition has no reconfiguration chance, no need to change
-    int gid = 0, size = 8;
-    for(auto job: plan[PARTITION-1]){
-        vector<int> slices;
-        while(!gpus[gid].allocate(job, size, slices)){
-            gid++;
-            if(gid == ngpu){
-                printf("no enough resource for placement\n");
-                exit(1);
-            }
-        }
-        job->run(gid, slices, timer);
-        running_queue.push(job);
-        gid++;
-    }
     // allocate resource from large partition
-    for(int idx=PARTITION-2; idx>=0; idx--){
+    for(int idx=PARTITION-1; idx>=0; idx--){
         int size = indexToSize[idx];
         vector<Partition> part, part1, part2;
         for(int i=0; i<ngpu; i++){
@@ -241,9 +204,6 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
         }
         stable_sort(part2.begin(), part2.end(), comparePartition());
         stable_sort(part1.begin(), part1.end(), comparePartition());
-        // for(auto &p: part1){
-        //     cout << p.gid << "\n";
-        // }
         sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
         int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
         while(i >= 0 && j>=0){
@@ -281,6 +241,68 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
             Job *job = plan[idx][j--];
             gpus[part1[k].gid].allocatePart(job, part1[k], slices, timer);
             job->run(part1[k--].gid, slices, timer);
+            running_queue.push(job);
+        }
+    }
+}
+
+void Cluster::bestfitPlacement(vector<vector<Job*>> &plan){
+    // allocate resource from large partition
+    for(int idx=PARTITION-1; idx>=0; idx--){
+        int size = indexToSize[idx];
+        for(auto job: plan[idx]){
+            int pid = -1;
+            int minSeg = 1e9;
+            vector<Partition> part;
+            vector<int> slices;
+            for(int i=0; i<ngpu; i++){
+                gpus[i].getPartition(size, timer, part);
+            }
+            int n = part.size();
+            for(int i=0; i<n; i++){
+                if(part[i].seg < minSeg){
+                    minSeg = part[i].seg;
+                    pid = i;
+                }
+            }
+            if(pid == -1){
+                cout<<"zzz\n";
+                exit(1);
+            }
+            job->finishTime = timer + job->rt[idx];
+            gpus[part[pid].gid].allocatePart(job, part[pid], slices, timer);
+            job->run(part[pid].gid, slices, timer);
+            running_queue.push(job);
+        }
+    }
+}
+
+void Cluster::worstfitPlacement(vector<vector<Job*>> &plan){
+    // allocate resource from large partition
+    for(int idx=PARTITION-1; idx>=0; idx--){
+        int size = indexToSize[idx];
+        for(auto job: plan[idx]){
+            int pid = -1;
+            int maxSeg = 0;
+            vector<Partition> part;
+            vector<int> slices;
+            for(int i=0; i<ngpu; i++){
+                gpus[i].getPartition(size, timer, part);
+            }
+            int n = part.size();
+            for(int i=0; i<n; i++){
+                if(part[i].seg > maxSeg){
+                    maxSeg = part[i].seg;
+                    pid = i;
+                }
+            }
+            if(pid == -1){
+                cout<<"zzz\n";
+                exit(1);
+            }
+            job->finishTime = timer + job->rt[idx];
+            gpus[part[pid].gid].allocatePart(job, part[pid], slices, timer);
+            job->run(part[pid].gid, slices, timer);
             running_queue.push(job);
         }
     }

@@ -19,7 +19,7 @@ private:
     vector<int> resource;
     queue<Job*> job_queue;
     priority_queue<Job*, vector<Job*>, compareFinish> running_queue;
-    vector<priority_queue<Job*, vector<Job*>, compareSpeed>> readyJobs;
+    vector<priority_queue<Job*, vector<Job*>, compareArrival>> readyJobs;
 public:
     Cluster();
     Cluster(int ngpu, Logger *logger, int algo);
@@ -29,11 +29,13 @@ public:
     void finishJob(Job *j);
     void schedule();
     void myAlgo();
-    void final();
+    void bestfit();
+    void worstfit();
     bool validScaleUp(int size);
     vector<vector<Job*>> myAllocate();
-    void placement(vector<vector<Job*>> &plan);
     void myPlacement(vector<vector<Job*>> &plan);
+    void bestfitPlacement(vector<vector<Job*>> &plan);
+    void worstfitPlacement(vector<vector<Job*>> &plan);
 };
 
 

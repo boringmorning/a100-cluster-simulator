@@ -7,7 +7,7 @@ class Partition
 {
 public:
     vector<int> FT;
-    int gid, size, idx, emptyCnt;
+    int gid, size, idx, emptyCnt, seg;
     Partition(int gid, int size, int idx);
     Partition();
 };
@@ -24,6 +24,14 @@ struct comparePartition
             return a.FT[i] < b.FT[i];
         }
         return true;
+    }
+};
+
+struct compareSeg
+{
+    bool operator()(const Partition &a, const Partition &b)
+    {
+        return a.seg < b.seg;
     }
 };
 
