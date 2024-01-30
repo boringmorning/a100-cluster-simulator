@@ -97,6 +97,9 @@ void Cluster::schedule(){
         case MYALGO:
             myAlgo();
             break;
+        case SIMPLE:
+            mySimple();
+            break;
         case BESTFIT:
             bestfit();
             break;
@@ -113,6 +116,11 @@ void Cluster::schedule(){
 void Cluster:: myAlgo(){
     vector<vector<Job*>> plan = myAllocate();
     myPlacement(plan);
+}
+
+void Cluster:: mySimple(){
+    vector<vector<Job*>> plan = myAllocate();
+    simplePlacement(plan);
 }
 
 void Cluster::bestfit(){
@@ -204,7 +212,7 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
         }
         stable_sort(part2.begin(), part2.end(), comparePartition());
         stable_sort(part1.begin(), part1.end(), comparePartition());
-        sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
+        stable_sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
         int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
         while(i >= 0 && j>=0){
             if(j>0 && k>0){
@@ -242,6 +250,33 @@ void Cluster::myPlacement(vector<vector<Job*>> &plan){
             gpus[part1[k].gid].allocatePart(job, part1[k], slices, timer);
             job->run(part1[k--].gid, slices, timer);
             running_queue.push(job);
+        }
+    }
+}
+
+void Cluster::simplePlacement(vector<vector<Job*>> &plan){
+    // allocate resource from large partition
+    for(int idx=PARTITION-1; idx>=0; idx--){
+        int size = indexToSize[idx];
+        vector<Partition> part;
+        for(int i=0; i<ngpu; i++){
+            gpus[i].getPartition(size, timer, part);
+        }
+        // set finish time for sorting
+        for(auto job: plan[idx]){
+            job->finishTime = timer + job->rt[idx];
+        }
+        stable_sort(part.begin(), part.end(), comparePartition());
+        stable_sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
+        int i = part.size()-1, j = plan[idx].size()-1;
+        while(j>=0){
+            vector<int> slices;
+            Job *job = plan[idx][j];
+            gpus[part[i].gid].allocatePart(job, part[i], slices, timer);
+            job->run(part[i].gid, slices, timer);
+            running_queue.push(job);
+            i--;
+            j--;
         }
     }
 }

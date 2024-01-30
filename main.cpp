@@ -45,6 +45,9 @@ int main(int argc, char *argv[]) {
         case MYALGO:
             postfix = string("_my.txt");
             break;
+        case SIMPLE:
+            postfix = string("_sp.txt");
+            break;
         case BESTFIT:
             postfix = string("_bf.txt");
             break;

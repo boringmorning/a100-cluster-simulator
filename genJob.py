@@ -10,7 +10,7 @@ for k in range(0, 5):
     njob = 500
     fname = "workload/load" + str(k) + ".txt"
     f = open(fname, "w")
-    t = np.random.poisson(3 - k / 5, njob)
+    t = np.random.poisson(3.5 - k / 5, njob)
     for i in range(1, len(t)):
         t[i] = t[i-1] + t[i]
     for i in range(0, len(t)):

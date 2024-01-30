@@ -29,11 +29,13 @@ public:
     void finishJob(Job *j);
     void schedule();
     void myAlgo();
+    void mySimple();
     void bestfit();
     void worstfit();
     bool validScaleUp(int size);
     vector<vector<Job*>> myAllocate();
     void myPlacement(vector<vector<Job*>> &plan);
+    void simplePlacement(vector<vector<Job*>> &plan);
     void bestfitPlacement(vector<vector<Job*>> &plan);
     void worstfitPlacement(vector<vector<Job*>> &plan);
 };
