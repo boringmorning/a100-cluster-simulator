@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 slice = [1, 2, 4, 8]
-dist = [0.25, 0.5, 0.75]
+dist = [0.3, 0.6, 0.8]
 batchSize = 1
 
 for k in range(0, 5):
