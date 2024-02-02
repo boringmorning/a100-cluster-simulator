@@ -3,7 +3,7 @@ import random
 
 slice = [1, 2, 4, 8]
 dist = [0.25, 0.5, 0.75]
-batchSize = 1
+batchSize = 10
 
 for k in range(0, 5):
     t = []
