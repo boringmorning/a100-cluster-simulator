@@ -6,6 +6,8 @@
         "utility": "cpp",
         "iosfwd": "cpp",
         "xutility": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "iomanip": "cpp",
+        "xstring": "cpp"
     }
 }

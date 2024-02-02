@@ -10,41 +10,23 @@ void Logger::finishJob(Job *j){
     this->jobs.push_back(j);
 }
 
-void Logger::logUtil(tt timer, double u, int readyCnt){
-    util << timer << " " << u << " " << readyCnt  << "\n"; 
+void Logger::logUtil(tt timer, double u){
+    util << timer << " " << u << "\n"; 
 }
 
 void Logger::end(tt timer){
-    int avgJCT = 0, avgQD = 0, cnt = 0;
+    int cnt = 0;
+    double avgQT = 0.0;
     vector<int> sizeJCT(PARTITION, 0);
     vector<int> partitionCnt(PARTITION, 0);
-    // cout << jobs.size() << "\n";
     for(auto &j: jobs){
-        int idx = sizeToIndex[j->slices.size()];
-        sizeJCT[idx] += j->finishTime - j->arrivalTime;
-        partitionCnt[idx]++;
-        avgJCT += j->finishTime - j->arrivalTime;
-        avgQD += j->startTime - j->arrivalTime;
+        avgQT += j->startTime - j->arrivalTime;
         cnt++;
     }
-    avgJCT /= cnt;
-    avgQD /= cnt;
+    avgQT /= cnt;
     file << "total runtime: " << timer << "\n";
-    file << "avg JCT: " << avgJCT << "\n";
-    file << "avg queueing delay: " << avgQD << "\n";
-    file << "size JCT: \n";
-    for(int i=0; i<PARTITION; i++){
-        int size = indexToSize[i];
-        if(partitionCnt[i] != 0)
-            sizeJCT[i] /= partitionCnt[i];
-        file << "   " << size << ": " << sizeJCT[i] << "\n";
-    }
-
-    // for(auto &j: jobs){
-    //     file << "job" << j->id << ":\n";
-    //     file << "   size: " << j->slices.size() <<"\n";
-    //     file << "   FT: " << j->finishTime << "\n";
-    // }
+    file << "avg queueing time: " << fixed << setprecision(2) << avgQT << "\n";
+    util << jobs.back()->arrivalTime << "\n";
     util.close();
     file.close();
 }

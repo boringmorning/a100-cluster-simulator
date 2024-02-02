@@ -1,9 +1,11 @@
 import numpy as np
 
-ALGO = ["bf", "my",  "sp", "wf"]
+ALGO = ["bf", "sp", "wf"]
 
 for k in range(0, 5):
     print("load" + str(k) + ":")
+    T = 1e9
+    utils = []
     for algo in ALGO:
         fname = "util/load" + str(k) + "_" + algo  + ".txt"
         f = open(fname, "r")
@@ -11,14 +13,18 @@ for k in range(0, 5):
         last_time = 0
         util = []
         for x in f:
-            x = x[0:len(x)-1]
             x = x.split()
-            t = int(x[0]) 
-            for i in range(last_time, t):
-                util.append(last_util)
-            last_time = t
-            last_util = float(x[1])
-        util = util[:1600]
-        print("\t", algo, ": ", sum(util) / len(util))
-
+            if len(x) == 1:
+                T = int(x[0])
+            else:
+                t = int(x[0]) 
+                for i in range(last_time, t):
+                    util.append(last_util)
+                last_time = t
+                last_util = float(x[1])
+        utils.append(util)
         f.close()
+
+    for i in range(len(ALGO)):
+        util = utils[i][:T]
+        print("\t", ALGO[i], ": ", sum(util) / len(util))

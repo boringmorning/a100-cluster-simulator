@@ -47,10 +47,6 @@ void Cluster::run(){
         timer = std::min(nextFinishTime, nextArrivalTime);
         updateStatus();
         schedule();
-        readyCnt = 0;
-        for(int i=0; i<PARTITION; i++){
-            readyCnt += readyJobs[i].size();
-        }
         double inUse = 0.0;
         for(int i=0; i<ngpu; i++){
             for(int j=0; j<SLICE; j++){
@@ -60,7 +56,7 @@ void Cluster::run(){
             }
         }
         double util = inUse / (ngpu * SLICE);
-        logger->logUtil(timer, util, readyCnt);
+        logger->logUtil(timer, util);
     }
     logger->end(timer);
 }
@@ -131,30 +127,6 @@ void Cluster::bestfit(){
 void Cluster::worstfit(){
     vector<vector<Job*>> plan = myAllocate();
     worstfitPlacement(plan);
-}
-
-bool Cluster::validScaleUp(int newSize){
-    switch(newSize){
-        case 2:
-            if(resource[0] >= 1 && resource[1] >= 1)
-                return true;
-            break;
-        case 4:
-            if(resource[0] >= 2 && resource[1] >= 1 && resource[2] >= 1){
-                return true;
-            }
-            break;
-        case 8:
-            if(resource[0] >= 4 && resource[1] >= 2 && resource[2] >= 1 && resource[3] >= 1){
-                return true;
-            }
-            break;
-        default:
-            printf("wrong scale up size!\n");
-            exit(1);
-            break;
-    }
-    return false;
 }
 
 vector<vector<Job*>> Cluster::myAllocate(){
@@ -268,15 +240,19 @@ void Cluster::simplePlacement(vector<vector<Job*>> &plan){
         }
         stable_sort(part.begin(), part.end(), comparePartition());
         stable_sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
-        int i = part.size()-1, j = plan[idx].size()-1;
-        while(j>=0){
+        int n = part.size(), m = plan[idx].size(), i = 0, j = 0;
+        while(j < m){
             vector<int> slices;
             Job *job = plan[idx][j];
+            if(plan[idx][j]->finishTime > part[i].FT[0] && m-j < n-i){
+                i++;
+                continue;
+            }
             gpus[part[i].gid].allocatePart(job, part[i], slices, timer);
             job->run(part[i].gid, slices, timer);
             running_queue.push(job);
-            i--;
-            j--;
+            i++;
+            j++;
         }
     }
 }

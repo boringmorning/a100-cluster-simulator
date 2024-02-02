@@ -130,63 +130,6 @@ void A100::getPartition(int size, int timer, vector<Partition> &part){
     }
 }
 
-bool A100::allocate(Job *j, int size, vector<int> &slices){
-    slices.clear();
-    switch(size){
-        case 1:
-            for(int i=SLICE-1; i>=0; i--){
-                if(empty[i]){
-                    slices.push_back(i);
-                    break;
-                }
-            }
-            break;
-        case 2:
-            for(int i=6; i>=0; i-=2){
-                if(empty[i] && empty[i+1]){
-                    slices.push_back(i);
-                    slices.push_back(i+1);
-                    break;
-                }
-            }
-            break;
-        case 4:
-            for(int i=4; i>=0; i-=4){
-                if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
-                    slices.push_back(i);
-                    slices.push_back(i+1);
-                    slices.push_back(i+2);
-                    slices.push_back(i+3);
-                    break;
-                }
-            }
-            break;
-        case 8:
-            for(int i=0; i<8; i++){
-                if(empty[i]){
-                    slices.push_back(i);
-                }
-                else{
-                    slices.clear();
-                    break;
-                }
-            }
-            break;
-        default:
-            cout << "Wrong partition size!\n";
-            cout << size << "\n";
-            break;
-    }
-    if(slices.empty()){
-        return false;
-    }
-    for(auto &s: slices){
-        jobTable[s] = j;
-        empty[s] = false;
-    }
-    return true;
-}
-
 void A100::allocatePart(Job *j, Partition &p, vector<int> &slices, tt timer){
     for(int s=p.idx; s<p.idx + p.size; s++){
         if(!empty[s]){
@@ -202,52 +145,4 @@ void A100::allocatePart(Job *j, Partition &p, vector<int> &slices, tt timer){
         jobTable[s] = j;
         empty[s] = false;
     }
-}
-
-bool A100::hasPartition(int size){
-    switch(size){
-        case 1:
-            for(int i=SLICE-1; i>=0; i--){
-                if(empty[i]){
-                    return true;
-                }
-            }
-            break;
-        case 2:
-            for(int i=6; i>=0; i-=2){
-                if(empty[i] && empty[i+1]){
-                    return true;
-                }
-            }
-            break;
-        case 4:
-            for(int i=4; i>=0; i-=4){
-                if(empty[i] && empty[i+1] && empty[i+2] && empty[i+3]){
-                    return true;
-                }
-            }
-            break;
-        case 8:
-            for(int i=0; i<8; i++){
-                if(!empty[i]){
-                    return false;
-                }
-            }
-            return true;
-            break;
-        default:
-            cout << "Wrong partition size!\n";
-            cout << size << "\n";
-            break;
-    }
-    return false;
-}
-
-int A100::freeSliceCnt(){
-    int cnt = 0;
-    for(int i=0; i<SLICE; i++){
-        if(empty[i])
-            cnt++;
-    }
-    return cnt;
 }
