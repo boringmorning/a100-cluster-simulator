@@ -3,9 +3,9 @@ import random
 
 slice = [1, 2, 4, 8]
 dist = [0.25, 0.5, 0.75]
-batchSize = 20
+batchSize = 1
 
-for k in range(0, 5):
+for k in range(0, 3):
     t = []
     njob = 1000
     fname = "workload/load" + str(k) + ".txt"
@@ -25,8 +25,8 @@ for k in range(0, 5):
             sliceIdx = 1
         elif x < dist[2]:
             sliceIdx = 2
-        seq = random.randint(20,200)
-        para = random.randint(20,200)
+        seq = random.randint(10,100)
+        para = random.randint(50,500)
         runtime = []
         for j in slice:
             runtime.append(seq + para // j)
