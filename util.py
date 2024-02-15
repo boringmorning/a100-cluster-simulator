@@ -5,6 +5,7 @@ ALGO = ["bf", "sp", "wf"]
 for k in range(0, 3):
     print("load" + str(k) + ":")
     utils = [0.0, 0.0, 0.0]
+    qts = [0.0, 0.0, 0.0]
     for n in range(0, 5):
         T = 1e9
         for idx, algo in enumerate(ALGO):
@@ -17,6 +18,8 @@ for k in range(0, 3):
                 x = x.split()
                 if len(x) == 1:
                     T = int(x[0])
+                elif len(x) == 3:
+                    qts[idx] += float(x[0])
                 else:
                     t = int(x[0]) 
                     for i in range(last_time, t):
@@ -29,5 +32,6 @@ for k in range(0, 3):
             f.close()
 
     for i in range(len(ALGO)):
+        qt = qts[i] / 5
         util = utils[i] / 5
-        print("\t", ALGO[i], ": ", util)
+        print("\t", ALGO[i], ": ", util, " " , qt)

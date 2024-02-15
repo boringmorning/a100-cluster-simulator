@@ -8,6 +8,8 @@
         "xutility": "cpp",
         "vector": "cpp",
         "iomanip": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "ostream": "cpp",
+        "ios": "cpp"
     }
 }

@@ -27,6 +27,7 @@ void Logger::end(tt timer){
     file << "total runtime: " << timer << "\n";
     file << "avg queueing time: " << fixed << setprecision(2) << avgQT << "\n";
     util << jobs.back()->arrivalTime << "\n";
+    util << fixed << setprecision(2) << avgQT << " " << 0 << " " << 1 << "\n";
     util.close();
     file.close();
 }
