@@ -20,7 +20,6 @@ using namespace std;
 
 enum{
     MYALGO,
-    SIMPLE,
     BESTFIT,
     WORSTFIT
 };

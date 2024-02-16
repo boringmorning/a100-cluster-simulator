@@ -31,35 +31,33 @@ void readJobs(Cluster &cluster, string fname){
 }
 
 int main(int argc, char *argv[]) {
-    if(argc != 4){
+    if(argc != 5){
         printf("Must have 4 args!\n");
     }
     int ngpu, algo;
-    string jobFile, outFile, jobID, postfix;
+    string jobFile, outFile, configID, testcaseID, postfix;
     
     ngpu = stoi(argv[1]);
-    jobID = argv[2];
-    algo = stoi(argv[3]);
+    configID = argv[2];
+    testcaseID = argv[3];
+    algo = stoi(argv[4]);
 
     switch(algo){
         case MYALGO:
-            postfix = string("_my.txt");
-            break;
-        case SIMPLE:
-            postfix = string("_sp.txt");
+            postfix = string("my");
             break;
         case BESTFIT:
-            postfix = string("_bf.txt");
+            postfix = string("bf");
             break;
         case WORSTFIT:
-            postfix = string("_wf.txt");
+            postfix = string("wf");
             break;
         default:
             printf("wrong algo argument!\n");
             exit(1);
     }
-    jobFile = string("workload/load") + jobID + string(".txt");
-    outFile = string("report/load") + jobID + postfix;
+    jobFile = string("workload/load") + configID + string("_") + testcaseID + string(".txt");
+    outFile = string("report/load") + configID + string("_") + testcaseID + string("_") + postfix + string(".txt");
 
     Logger logger(outFile);
     Cluster cluster(ngpu, &logger, algo);

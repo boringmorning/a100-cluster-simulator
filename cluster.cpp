@@ -93,9 +93,6 @@ void Cluster::schedule(){
         case MYALGO:
             myAlgo();
             break;
-        case SIMPLE:
-            mySimple();
-            break;
         case BESTFIT:
             bestfit();
             break;
@@ -110,33 +107,28 @@ void Cluster::schedule(){
 }
 
 void Cluster:: myAlgo(){
-    vector<vector<Job*>> plan = myAllocate();
+    vector<Job*> plan = myScheduling();
     myPlacement(plan);
 }
 
-void Cluster:: mySimple(){
-    vector<vector<Job*>> plan = myAllocate();
-    simplePlacement(plan);
-}
-
 void Cluster::bestfit(){
-    vector<vector<Job*>> plan = myAllocate();
+    vector<Job*> plan = myScheduling();
     bestfitPlacement(plan);
 }
 
 void Cluster::worstfit(){
-    vector<vector<Job*>> plan = myAllocate();
+    vector<Job*> plan = myScheduling();
     worstfitPlacement(plan);
 }
 
-vector<vector<Job*>> Cluster::myAllocate(){
-    vector<vector<Job*>> plan(PARTITION);
+vector<Job*> Cluster::myScheduling(){
+    vector<Job*> plan;
     for(int i=PARTITION-1; i>=0; i--){
         int size = indexToSize[i];
         while(resource[i] != 0 && !readyJobs[i].empty()){
             Job *j = readyJobs[i].top();
             readyJobs[i].pop();
-            plan[i].push_back(j);
+            plan.push_back(j);
             switch(size){
                 case 1:
                     resource[0]--;
@@ -162,75 +154,17 @@ vector<vector<Job*>> Cluster::myAllocate(){
     return plan;
 }
 
-void Cluster::myPlacement(vector<vector<Job*>> &plan){
-    // allocate resource from large partition
-    for(int idx=PARTITION-1; idx>=0; idx--){
-        int size = indexToSize[idx];
-        vector<Partition> part, part1, part2;
-        for(int i=0; i<ngpu; i++){
-            gpus[i].getPartition(size, timer, part);
-        }
-        for(auto &p: part){
-            if(p.FT[0] == timer){
-                part1.push_back(p);
-            }
-            else{
-                part2.push_back(p);
-            }
-        }
-        // set finish time for sorting
-        for(auto job: plan[idx]){
-            job->finishTime = timer + job->rt[idx];
-        }
-        stable_sort(part2.begin(), part2.end(), comparePartition());
-        stable_sort(part1.begin(), part1.end(), comparePartition());
-        stable_sort(plan[idx].begin(), plan[idx].end(), compareFinish2());
-        int i = part2.size()-1, j = plan[idx].size()-1, k = part1.size()-1;
-        while(i >= 0 && j>=0){
-            if(j>0 && k>0){
-                int gap = plan[idx][j]->finishTime - timer;
-                int gap2;
-                if(i == 0){
-                    gap2 = max(plan[idx][j]->finishTime - part2[i].FT[0], 0) + (plan[idx][j-1]->finishTime - timer);
-                }
-                else{
-                    gap2 = max(plan[idx][j]->finishTime - part2[i].FT[0], 0) + max(plan[idx][j-1]->finishTime - part2[i-1].FT[0], 0);
-                }
-                if(gap < gap2){
-                    for(int c=0; c<2; c++){
-                        vector<int> slices;
-                        Job *job = plan[idx][j--];
-                        gpus[part1[k].gid].allocatePart(job, part1[k], slices, timer);
-                        job->run(part1[k--].gid, slices, timer);
-                        running_queue.push(job);
-                    }
-                    continue;
-                }
-            }
-            vector<int> slices;
-            Job *job = plan[idx][j--];
-            gpus[part2[i].gid].allocatePart(job, part2[i], slices, timer);
-            job->run(part2[i--].gid, slices, timer);
-            running_queue.push(job);
-        }
-        while(j>=0){
-            if(k<0){
-                cout << "WTFZ\n";
-            }
-            vector<int> slices;
-            Job *job = plan[idx][j--];
-            gpus[part1[k].gid].allocatePart(job, part1[k], slices, timer);
-            job->run(part1[k--].gid, slices, timer);
-            running_queue.push(job);
-        }
-    }
-}
 
-void Cluster::simplePlacement(vector<vector<Job*>> &plan){
-    // allocate resource from large partition
-    for(int idx=PARTITION-1; idx>=0; idx--){
-        int size = indexToSize[idx];
+void Cluster::myPlacement(vector<Job*> &plan){
+    int idx = 0;
+    while(idx < plan.size()){
+        vector<Job*> jobs = {plan[idx]};
         vector<Partition> part;
+        int size = plan[idx]->limitSize;
+        while(idx+1 < plan.size() && plan[idx]->limitSize == size){
+            jobs.push_back(plan[++idx]);
+        }
+        
         for(int i=0; i<ngpu; i++){
             gpus[i].getPartition(size, timer, part);
         }
