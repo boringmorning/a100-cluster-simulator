@@ -23,13 +23,11 @@ for k in range(0, NCONFIG):
 
         for i in range(njob):
             x = random.random()
-            sliceIdx = 3
-            if x < dist[0]:
-                sliceIdx = 0
-            elif x < dist[1]:
-                sliceIdx = 1
-            elif x < dist[2]:
-                sliceIdx = 2
+            sliceIdx = len(slice)-1
+            for j in range(len(slice)-1):
+                if x < dist[j]:
+                    sliceIdx = j
+                    break
             seq = random.randint(10,100)
             para = random.randint(50,500)
             runtime = []
