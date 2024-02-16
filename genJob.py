@@ -1,8 +1,8 @@
 import numpy as np
 import random
 
-slice = [1, 2, 4, 8]
-dist = [0.25, 0.5, 0.75]
+slice = [1, 2, 3, 4, 7]
+dist = [0.2, 0.4, 0.6, 0.8]
 njob = 1000
 batchSize = 1
 
@@ -23,13 +23,11 @@ for k in range(0, NCONFIG):
 
         for i in range(njob):
             x = random.random()
-            sliceIdx = 3
-            if x < dist[0]:
-                sliceIdx = 0
-            elif x < dist[1]:
-                sliceIdx = 1
-            elif x < dist[2]:
-                sliceIdx = 2
+            sliceIdx = len(slice)-1
+            for j in range(len(slice)-1):
+                if x < dist[j]:
+                    sliceIdx = j
+                    break
             seq = random.randint(10,100)
             para = random.randint(50,500)
             runtime = []
