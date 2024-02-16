@@ -1,11 +1,12 @@
 #include "cluster.h"
 
-const int indexToSize[] = {1,2,4,8};
+const int indexToSize[] = {1,2,3,4,7};
 unordered_map<int,int> sizeToIndex = {
     {1,0},
     {2,1},
-    {4,2},
-    {8,3}
+    {3,2},
+    {4,3},
+    {7,4}
 };
 
 Cluster::Cluster(){
@@ -140,16 +141,22 @@ vector<Job*> Cluster::myScheduling(){
                     resource[0]-=2;
                     resource[1]--;
                     break;
+                case 3:
+                    resource[0]-=3;
+                    resource[1]--;
+                    resource[2]--;
+                    break;
                 case 4:
                     resource[0]-=4;
                     resource[1]-=2;
-                    resource[2]--;
-                    break;
-                case 8:
-                    resource[0]-=8;
-                    resource[1]-=4;
-                    resource[2]-=2;
                     resource[3]--;
+                    break;
+                case 7:
+                    resource[0]-=7;
+                    resource[1]-=3;
+                    resource[2]--;
+                    resource[3]--;
+                    resource[4]--;
                     break;
             }
         }
@@ -160,7 +167,6 @@ vector<Job*> Cluster::myScheduling(){
 vector<Job*> Cluster::AFCFS_Scheduling(){
     vector<Job*> plan;
     for(int i=PARTITION-1; i>=0; i--){
-        int size = indexToSize[i];
         while(!readyJobs[i].empty()){
             Job *j = readyJobs[i].top();
             readyJobs[i].pop();
