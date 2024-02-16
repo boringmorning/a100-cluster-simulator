@@ -3,18 +3,23 @@ import random
 
 slice = [1, 2, 4, 8]
 dist = [0.25, 0.5, 0.75]
-batchSize = [1, 20, 40]
+njob = 1000
+batchSize = 1
 
-for k in range(0, 15):
+
+NCONFIG = 5
+NCASE = 5
+
+for k in range(0, NCONFIG):
+    for l in range(0, NCASE):
         t = []
-        njob = 1000
-        fname = "workload/load" + str(k) + ".txt"
+        fname = "workload/load" + str(k) + "_" + str(l) + ".txt"
         f = open(fname, "w")
-        t = np.random.poisson(3.0, njob)
+        t = np.random.poisson(3.4 - 0.2 * k, njob)
         for i in range(1, len(t)):
             t[i] = t[i-1] + t[i]
         for i in range(0, len(t)):
-            t[i] = t[i - i % batchSize[k//5] + batchSize[k//5] // 2]
+            t[i] = t[i - i % batchSize + batchSize // 2]
 
         for i in range(njob):
             x = random.random()

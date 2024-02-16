@@ -10,6 +10,8 @@
         "iomanip": "cpp",
         "xstring": "cpp",
         "ostream": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "queue": "cpp",
+        "xlocmon": "cpp"
     }
 }

@@ -1,20 +1,20 @@
-#ifndef PARTITION_H
-#define PARTITION_H
+#ifndef INSTANCE_H
+#define INSTANCE_H
 
 #include "util.h"
 
-class Partition
+class Instance
 {
 public:
     vector<int> FT;
     int gid, size, idx, emptyCnt, seg;
-    Partition(int gid, int size, int idx);
-    Partition();
+    Instance(int gid, int size, int idx);
+    Instance();
 };
 
-struct comparePartition
+struct compareGI
 {
-    bool operator()(const Partition &a, const Partition &b)
+    bool operator()(const Instance &a, const Instance &b)
     {
         int n = a.FT.size();
         for(int i=0; i<n; i++){
@@ -29,7 +29,7 @@ struct comparePartition
 
 struct compareSeg
 {
-    bool operator()(const Partition &a, const Partition &b)
+    bool operator()(const Instance &a, const Instance &b)
     {
         return a.seg < b.seg;
     }

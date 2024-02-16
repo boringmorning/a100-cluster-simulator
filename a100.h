@@ -2,7 +2,7 @@
 #define A100_H
 
 #include "util.h"
-#include "partition.h"
+#include "instance.h"
 #include "job.h"
 
 class A100
@@ -13,10 +13,10 @@ public:
     Job *jobTable[SLICE];
     int finishTime[SLICE];
     A100(int id);
-    void freePartition(vector<int> &slices);
+    void freeSlices(vector<int> &slices);
     void getResource(vector<int> &resource);
-    void getPartition(int size, int timer, vector<Partition> &part);
-    void allocatePart(Job *j, Partition &p, vector<int> &slices, tt timer);
+    void getGI(int size, int timer, vector<Instance> &GIs);
+    void allocateGI(Job *j, Instance &i, vector<int> &slices, tt timer);
 };
 
 

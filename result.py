@@ -1,15 +1,19 @@
 import numpy as np
+import sys
 
-ALGO = ["bf", "sp", "wf"]
+ALGO = ["wf", "bf", "my"]
 
-for k in range(0, 3):
+NCONFIG = int(sys.argv[1])
+NCASE = int(sys.argv[2])
+T = 0
+
+for k in range(0, NCONFIG):
     print("load" + str(k) + ":")
-    utils = [0.0, 0.0, 0.0]
-    qts = [0.0, 0.0, 0.0]
-    for n in range(0, 5):
-        T = 1e9
+    utils = [0.0] * len(ALGO)
+    qts = [0.0] * len(ALGO)
+    for n in range(0, NCASE):
         for idx, algo in enumerate(ALGO):
-            fname = "util/load" + str(k*5 + n) + "_" + algo  + ".txt"
+            fname = "util/load" + str(k) + "_" + str(n) + "_"  + algo  + ".txt"
             f = open(fname, "r")
             last_util = 0.0
             last_time = 0
@@ -32,6 +36,6 @@ for k in range(0, 3):
             f.close()
 
     for i in range(len(ALGO)):
-        qt = qts[i] / 5
-        util = utils[i] / 5
+        qt = round(qts[i] / NCASE, 1)
+        util = round(utils[i] / NCASE * 100, 1)
         print("\t", ALGO[i], ": ", util, " " , qt)

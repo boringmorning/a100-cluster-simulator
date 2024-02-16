@@ -4,7 +4,7 @@
 #include "a100.h"
 #include "job.h"
 #include "logger.h"
-#include "partition.h"
+#include "instance.h"
 
 class Cluster
 {
@@ -18,7 +18,7 @@ private:
     vector<Job*> jobs;
     vector<int> resource;
     queue<Job*> job_queue;
-    priority_queue<Job*, vector<Job*>, compareFinish> running_queue;
+    priority_queue<Job*, vector<Job*>, compareFT> running_queue;
     vector<priority_queue<Job*, vector<Job*>, compareArrival>> readyJobs;
 public:
     Cluster();
@@ -32,6 +32,7 @@ public:
     void bestfit();
     void worstfit();
     vector<Job*> myScheduling();
+    vector<Job*> AFCFS_Scheduling();
     void myPlacement(vector<Job*> &plan);
     void bestfitPlacement(vector<Job*> &plan);
     void worstfitPlacement(vector<Job*> &plan);

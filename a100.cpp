@@ -9,7 +9,7 @@ A100::A100(int id){
     }
 }
 
-void A100::freePartition(vector<int> &slices){
+void A100::freeSlices(vector<int> &slices){
     for(auto &s: slices){
         empty[s] = true;
     }
@@ -43,7 +43,7 @@ void A100::getResource(vector<int> &resource){
     }
 }
 
-void A100::getPartition(int size, int timer, vector<Partition> &part){
+void A100::getGI(int size, int timer, vector<Instance> &GIs){
     int currentFT8 = timer;
     vector<int> currentFT2(4, timer), currentFT4(2, timer);
     for(int i=0; i<SLICE; i++){
@@ -59,68 +59,68 @@ void A100::getPartition(int size, int timer, vector<Partition> &part){
         case 1:
             for(int i=0; i < SLICE; i++){
                 if(empty[i]){
-                    Partition p(this->id, 1, i);
+                    Instance GI(this->id, 1, i);
                     int idx2 = i / 2, idx4 = i / 4;
-                    p.FT.push_back(currentFT2[idx2]);
-                    p.FT.push_back(currentFT4[idx4]);
-                    p.FT.push_back(currentFT8);
+                    GI.FT.push_back(currentFT2[idx2]);
+                    GI.FT.push_back(currentFT4[idx4]);
+                    GI.FT.push_back(currentFT8);
                     if(currentFT8 == timer){
-                        p.seg = 8;
+                        GI.seg = 8;
                     }
                     else if(currentFT4[idx4] == timer){
-                        p.seg = 4;
+                        GI.seg = 4;
                     }
                     else if(currentFT2[idx2] == timer){
-                        p.seg = 2;
+                        GI.seg = 2;
                     }
                     else{
-                        p.seg = 1;
+                        GI.seg = 1;
                     }
-                    part.push_back(p);
+                    GIs.push_back(GI);
                 }
             }
             break;
         case 2:
             for(int i=0; i<4; i++){
                 if(currentFT2[i] == timer){
-                    Partition p(this->id, 2, i*2);
+                    Instance GI(this->id, 2, i*2);
                     int idx4 = i * 2 / 4;
-                    p.FT.push_back(currentFT4[idx4]);
-                    p.FT.push_back(currentFT8);
+                    GI.FT.push_back(currentFT4[idx4]);
+                    GI.FT.push_back(currentFT8);
                     if(currentFT8 == timer){
-                        p.seg = 8;
+                        GI.seg = 8;
                     }
                     else if(currentFT4[idx4] == timer){
-                        p.seg = 4;
+                        GI.seg = 4;
                     }
                     else{
-                        p.seg = 2;
+                        GI.seg = 2;
                     }
-                    part.push_back(p);
+                    GIs.push_back(GI);
                 }
             }
             break;
         case 4:
             for(int i=0; i<2; i++){
                 if(currentFT4[i] == timer){
-                    Partition p(this->id, 4, i*4);
-                    p.FT.push_back(currentFT8);
+                    Instance GI(this->id, 4, i*4);
+                    GI.FT.push_back(currentFT8);
                     if(currentFT8 == timer){
-                        p.seg = 8;
+                        GI.seg = 8;
                     }
                     else{
-                        p.seg = 4;
+                        GI.seg = 4;
                     }
-                    part.push_back(p);
+                    GIs.push_back(GI);
                 }
             }
             break;
         case 8:
             if(currentFT8 == timer){
-                Partition p(this->id, 8, 0);
-                p.FT.push_back(timer);
-                p.seg = 8;
-                part.push_back(p);
+                Instance GI(this->id, 8, 0);
+                GI.FT.push_back(timer);
+                GI.seg = 8;
+                GIs.push_back(GI);
             }
             break;
         default:
@@ -130,8 +130,8 @@ void A100::getPartition(int size, int timer, vector<Partition> &part){
     }
 }
 
-void A100::allocatePart(Job *j, Partition &p, vector<int> &slices, tt timer){
-    for(int s=p.idx; s<p.idx + p.size; s++){
+void A100::allocateGI(Job *j, Instance &GI, vector<int> &slices, tt timer){
+    for(int s=GI.idx; s<GI.idx + GI.size; s++){
         if(!empty[s]){
             printf("0....0\n");
             exit(1);

@@ -34,7 +34,7 @@ struct compareMetrics{
     }
 };
 
-struct compareFinish
+struct compareFT
 {
     bool operator()(const Job *a, const Job *b)
     {
@@ -42,7 +42,7 @@ struct compareFinish
     }
 };
 
-struct compareFinish2
+struct compareFT2
 {
     bool operator()(const Job *a, const Job *b)
     {
@@ -63,6 +63,14 @@ struct compareArrival
     bool operator()(const Job *a, const Job *b)
     {
         return a->arrivalTime > b->arrivalTime;
+    }
+};
+
+struct compareArrival2
+{
+    bool operator()(const Job *a, const Job *b)
+    {
+        return a->arrivalTime < b->arrivalTime;
     }
 };
 
