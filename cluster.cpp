@@ -160,7 +160,6 @@ vector<Job*> Cluster::myScheduling(){
 vector<Job*> Cluster::AFCFS_Scheduling(){
     vector<Job*> plan;
     for(int i=PARTITION-1; i>=0; i--){
-        int size = indexToSize[i];
         while(!readyJobs[i].empty()){
             Job *j = readyJobs[i].top();
             readyJobs[i].pop();
