@@ -18,21 +18,21 @@ a100-cluster-simulator
 ```bash
 ./python genJob.py $i $j
 ```
-  - i: # Configs
-  - j: # Testcases for each config
+  - i: # workload configs
+  - j: # testcases for each config
 
 2. Simulated experiment
 ```bash
 ./main.exe $NGPU $i $j $k
 ```
   - NGPU: cluster 內 GPU 的數量
-  - i: Config ID
-  - j: Testcase ID
-  - k: Algo ID
+  - i: workload config ID
+  - j: testcase ID
+  - k: algorithm ID
 
 3. Result analyze
 ```bash
 ./python result.py $i $j
 ```
-  - i: # Configs
-  - j: # Testcases for each config
+  - i: # workload configs
+  - j: # testcases for each config
