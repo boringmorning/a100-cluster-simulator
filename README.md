@@ -12,9 +12,8 @@ a100-cluster-simulator
 詳見 Makefile
 
 ## Execution
-執行完整實驗的作法請參考 defaultRun.sh
----
-以下為個別的步驟:
+- 執行完整實驗的作法請參考 defaultRun.sh
+- 以下為個別的步驟:
 1. Generate workload
 ```bash
 ./python genJob.py $i $j
