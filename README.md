@@ -3,7 +3,7 @@ a100-cluster-simulator
 
 ## Introduction
 我的碩士論文研究題目是針對[MIG GPU](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html)提出工作排程及資源分配方法。為此我設計了這個 a100 cluster simulator。
-此 project 包含了 workload generator, cluster simulator 以及 result analyzer。
+此 project 包含了 workload generator, cluster simulator 以及 result analyzer。main branch 為簡化的 a100 model，real branch 則為實際的 model。
 
 ## Compilation
 ```bash
@@ -16,7 +16,7 @@ a100-cluster-simulator
 - 以下為個別的步驟:
 1. Generate workload
 ```bash
-./python genJob.py $i $j
+python genJob.py $i $j
 ```
   - i: # workload configs
   - j: # testcases for each config
@@ -32,7 +32,7 @@ a100-cluster-simulator
 
 3. Result analyze
 ```bash
-./python result.py $i $j
+python result.py $i $j
 ```
   - i: # workload configs
   - j: # testcases for each config
