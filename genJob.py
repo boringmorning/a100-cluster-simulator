@@ -1,14 +1,14 @@
 import numpy as np
 import random
+import sys
 
 slice = [1, 2, 3, 4, 7]
 dist = [0.2, 0.4, 0.6, 0.8]
 njob = 1000
 batchSize = 1
 
-
-NCONFIG = 5
-NCASE = 5
+NCONFIG = int(sys.argv[1])
+NCASE = int(sys.argv[2])
 
 for k in range(0, NCONFIG):
     for l in range(0, NCASE):
