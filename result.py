@@ -6,7 +6,8 @@ ALGO = ["wf", "bf", "my"]
 NCONFIG = int(sys.argv[1])
 NCASE = int(sys.argv[2])
 T = 0
-
+print('-------------------------------')
+print('%32s' % "util queuing delay")
 for k in range(0, NCONFIG):
     print("load" + str(k) + ":")
     utils = [0.0] * len(ALGO)

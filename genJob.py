@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import sys
 
 slice = [1, 2, 4, 8]
 dist = [0.25, 0.5, 0.75]
@@ -7,8 +8,8 @@ njob = 1000
 batchSize = 1
 
 
-NCONFIG = 5
-NCASE = 5
+NCONFIG = int(sys.argv[1])
+NCASE = int(sys.argv[2])
 
 for k in range(0, NCONFIG):
     for l in range(0, NCASE):
