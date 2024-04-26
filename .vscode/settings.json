@@ -12,6 +12,7 @@
         "ostream": "cpp",
         "ios": "cpp",
         "queue": "cpp",
-        "xlocmon": "cpp"
+        "xlocmon": "cpp",
+        "fstream": "cpp"
     }
 }

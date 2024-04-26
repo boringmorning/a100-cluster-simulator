@@ -3,3 +3,4 @@ backup/
 workload/
 util/
 run.sh
+*.o
