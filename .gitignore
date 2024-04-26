@@ -4,3 +4,4 @@ workload/
 util/
 run.sh
 *.o
+*.exe
